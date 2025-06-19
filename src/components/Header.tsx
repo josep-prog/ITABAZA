@@ -50,9 +50,6 @@ const Header: React.FC<HeaderProps> = ({ isMobileMenuOpen, setIsMobileMenuOpen, 
             <button className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200">
               Sign In
             </button>
-            <button className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200">
-              Appointment
-            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -92,9 +89,6 @@ const Header: React.FC<HeaderProps> = ({ isMobileMenuOpen, setIsMobileMenuOpen, 
               ))}
               <button className="text-left text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200">
                 Sign In
-              </button>
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 w-fit">
-                Appointment
               </button>
             </div>
           </div>
