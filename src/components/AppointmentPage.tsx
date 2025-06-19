@@ -78,31 +78,41 @@ function AppointmentPage() {
 
         {/* Step 0: Type Selection */}
         {step === 0 && (
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            <div className="flex-1 border rounded-xl p-6 flex flex-col items-center bg-blue-50 shadow">
-              <span className="text-4xl mb-2">📹</span>
-              <h2 className="font-semibold mb-2 text-blue-700">Video Call Appointment</h2>
-              <ul className="text-sm text-gray-600 mb-3 list-disc list-inside text-left">
-                <li>Consult with a doctor from anywhere via secure video call</li>
-                <li>Choose from available doctors and time slots for <b>today only</b></li>
-                <li>Describe your symptoms and pay online</li>
-                <li>Receive a meeting link and appointment code after payment</li>
-              </ul>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg mt-auto w-full" onClick={() => handleTypeSelect('video')}>Book Video Call</button>
+          <>
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              <div className="flex-1 border rounded-xl p-6 flex flex-col items-center bg-blue-50 shadow">
+                <span className="text-4xl mb-2">📹</span>
+                <h2 className="font-semibold mb-2 text-blue-700">Video Call Appointment</h2>
+                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg mt-auto w-full" onClick={() => handleTypeSelect('video')}>Book Video Call</button>
+              </div>
+              <div className="flex-1 border rounded-xl p-6 flex flex-col items-center bg-green-50 shadow">
+                <span className="text-4xl mb-2">🏥</span>
+                <h2 className="font-semibold mb-2 text-green-700">In-Person Appointment</h2>
+                <button className="bg-green-600 text-white px-4 py-2 rounded-lg mt-auto w-full" onClick={() => handleTypeSelect('inperson')}>Book In-Person Visit</button>
+              </div>
             </div>
-            <div className="flex-1 border rounded-xl p-6 flex flex-col items-center bg-green-50 shadow">
-              <span className="text-4xl mb-2">🏥</span>
-              <h2 className="font-semibold mb-2 text-green-700">In-Person Appointment</h2>
-              <ul className="text-sm text-gray-600 mb-3 list-disc list-inside text-left">
-                <li>Visit a healthcare facility for a face-to-face consultation</li>
-                <li>Find hospitals with available slots for <b>today only</b></li>
-                <li>Filter by location (district, sector, cell) or search directly</li>
-                <li>Describe your symptoms and pay online</li>
-                <li>Receive room and meeting details after payment</li>
-              </ul>
-              <button className="bg-green-600 text-white px-4 py-2 rounded-lg mt-auto w-full" onClick={() => handleTypeSelect('inperson')}>Book In-Person Visit</button>
+            {/* Step-by-step experience guide */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div className="bg-blue-50 rounded-xl p-6 shadow">
+                <h3 className="text-lg font-bold text-blue-700 mb-2 flex items-center gap-2"><span>📹</span> Video Call Appointment Flow</h3>
+                <ol className="list-decimal list-inside text-sm text-gray-700 space-y-2">
+                  <li><b>Confirm Video Consultation:</b> System confirms your selection and explains the process.</li>
+                  <li><b>Choose Doctor & Time:</b> Filterable list of doctors, sorted by today's availability and specialty. Select a doctor and time slot.</li>
+                  <li><b>Describe Your Condition:</b> Fill a structured form with your reason for visit and symptoms.</li>
+                  <li><b>Payment & Confirmation:</b> Receive payment code (1043577), upload proof, and submit. After approval, you'll get a meeting URL, doctor details, and appointment code.</li>
+                </ol>
+              </div>
+              <div className="bg-green-50 rounded-xl p-6 shadow">
+                <h3 className="text-lg font-bold text-green-700 mb-2 flex items-center gap-2"><span>🏥</span> In-Person Appointment Flow</h3>
+                <ol className="list-decimal list-inside text-sm text-gray-700 space-y-2">
+                  <li><b>Confirm In-Person Visit:</b> System confirms your preference and explains the process.</li>
+                  <li><b>Find Hospital & Time:</b> Location-aware hospital finder, filter by district/sector/cell or search. Select a hospital and time slot.</li>
+                  <li><b>Describe Your Condition:</b> Fill a structured form with your reason for visit, symptoms, and extra fields for physical visits.</li>
+                  <li><b>Payment & Confirmation:</b> Receive payment code (1043577), upload proof, and submit. After approval, you'll get room details, meeting time, and appointment code.</li>
+                </ol>
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* Step 1: Select Doctor or Hospital */}
