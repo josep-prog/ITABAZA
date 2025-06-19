@@ -3,6 +3,7 @@ import Header from './components/Header';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import DoctorsPage from './components/DoctorsPage';
+import AppointmentPage from './components/AppointmentPage';
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,6 +18,8 @@ function App() {
     switch (currentPage) {
       case 'doctors':
         return <DoctorsPage />;
+      case 'appointment':
+        return <AppointmentPage />;
       case 'home':
       default:
         return (
