@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Star, MapPin, Clock, Calendar, Search, Filter, Heart, Award, Users, Stethoscope } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const DoctorsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('All');
   const [selectedLocation, setSelectedLocation] = useState('All');
+  const navigate = useNavigate();
+  const [slotModalDoctor, setSlotModalDoctor] = useState<any>(null);
 
   const specialties = [
     'All', 'Cardiology', 'Dermatology', 'Neurology', 'Pediatrics', 
@@ -13,10 +16,13 @@ const DoctorsPage: React.FC = () => {
     'Gastroenterology', 'Pulmonology', 'Urology', 'Anesthesiology', 'Emergency Medicine'
   ];
 
-  const locations = [
-    'All', 'New York', 'Los Angeles', 'Chicago', 'Houston', 
-    'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas',
-    'Miami', 'Boston', 'Seattle', 'Denver', 'Atlanta'
+  const districts = [
+    'All',
+    'Gasabo', 'Kicukiro', 'Nyarugenge', // Kigali City
+    'Bugesera', 'Gatsibo', 'Kayonza', 'Kirehe', 'Ngoma', 'Nyagatare', 'Rwamagana', // Eastern
+    'Burera', 'Gakenke', 'Gicumbi', 'Musanze', 'Rulindo', // Northern
+    'Gisagara', 'Huye', 'Kamonyi', 'Muhanga', 'Nyamagabe', 'Nyanza', 'Nyaruguru', 'Ruhango', // Southern
+    'Karongi', 'Ngororero', 'Nyabihu', 'Nyamasheke', 'Rubavu', 'Rusizi', 'Rutsiro', // Western
   ];
 
   const doctors = [
@@ -34,7 +40,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Specialized in preventive cardiology and heart disease management with over 15 years of experience.',
       languages: ['English', 'Spanish'],
       education: 'Harvard Medical School',
-      certifications: ['Board Certified Cardiologist', 'Fellow of American College of Cardiology']
+      certifications: ['Board Certified Cardiologist', 'Fellow of American College of Cardiology'],
+      slots: ['Today 10:00', 'Today 14:00', 'Today 16:00']
     },
     {
       id: 2,
@@ -50,7 +57,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Expert in cosmetic and medical dermatology, specializing in skin cancer prevention and treatment.',
       languages: ['English', 'Mandarin'],
       education: 'Stanford University School of Medicine',
-      certifications: ['Board Certified Dermatologist', 'Mohs Surgery Specialist']
+      certifications: ['Board Certified Dermatologist', 'Mohs Surgery Specialist'],
+      slots: ['Tomorrow 09:00', 'Tomorrow 13:00', 'Tomorrow 15:00']
     },
     {
       id: 3,
@@ -66,7 +74,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Compassionate pediatrician focused on comprehensive child healthcare and development.',
       languages: ['English', 'Spanish', 'Portuguese'],
       education: 'Johns Hopkins School of Medicine',
-      certifications: ['Board Certified Pediatrician', 'Pediatric Emergency Medicine']
+      certifications: ['Board Certified Pediatrician', 'Pediatric Emergency Medicine'],
+      slots: ['Today 11:00', 'Today 15:00', 'Today 17:00']
     },
     {
       id: 4,
@@ -82,7 +91,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Orthopedic surgeon specializing in sports medicine and joint replacement procedures.',
       languages: ['English'],
       education: 'Mayo Clinic School of Medicine',
-      certifications: ['Board Certified Orthopedic Surgeon', 'Sports Medicine Specialist']
+      certifications: ['Board Certified Orthopedic Surgeon', 'Sports Medicine Specialist'],
+      slots: ['Monday 10:00', 'Monday 14:00', 'Monday 16:00']
     },
     {
       id: 5,
@@ -98,7 +108,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Neurologist with expertise in stroke prevention, epilepsy management, and headache disorders.',
       languages: ['English', 'French'],
       education: 'UCLA School of Medicine',
-      certifications: ['Board Certified Neurologist', 'Stroke Specialist']
+      certifications: ['Board Certified Neurologist', 'Stroke Specialist'],
+      slots: ['Today 10:00', 'Today 14:00', 'Today 16:00']
     },
     {
       id: 6,
@@ -114,7 +125,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Internal medicine physician focused on preventive care and chronic disease management.',
       languages: ['English', 'Korean'],
       education: 'University of Pennsylvania School of Medicine',
-      certifications: ['Board Certified Internal Medicine', 'Geriatric Medicine Specialist']
+      certifications: ['Board Certified Internal Medicine', 'Geriatric Medicine Specialist'],
+      slots: ['Tomorrow 09:00', 'Tomorrow 13:00', 'Tomorrow 15:00']
     },
     {
       id: 7,
@@ -130,7 +142,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Women\'s health specialist with expertise in reproductive health and minimally invasive surgery.',
       languages: ['English', 'Spanish'],
       education: 'Columbia University College of Physicians',
-      certifications: ['Board Certified OB/GYN', 'Minimally Invasive Surgery Specialist']
+      certifications: ['Board Certified OB/GYN', 'Minimally Invasive Surgery Specialist'],
+      slots: ['Today 10:00', 'Today 14:00', 'Today 16:00']
     },
     {
       id: 8,
@@ -146,7 +159,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Eye specialist with extensive experience in cataract surgery and retinal disorders.',
       languages: ['English', 'Spanish'],
       education: 'Massachusetts Eye and Ear Infirmary',
-      certifications: ['Board Certified Ophthalmologist', 'Retinal Surgery Specialist']
+      certifications: ['Board Certified Ophthalmologist', 'Retinal Surgery Specialist'],
+      slots: ['Wednesday 10:00', 'Wednesday 14:00', 'Wednesday 16:00']
     },
     {
       id: 9,
@@ -162,7 +176,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Ear, nose, and throat specialist focusing on sinus disorders and hearing problems.',
       languages: ['English', 'Korean'],
       education: 'University of Washington School of Medicine',
-      certifications: ['Board Certified ENT', 'Rhinology Specialist']
+      certifications: ['Board Certified ENT', 'Rhinology Specialist'],
+      slots: ['Today 10:00', 'Today 14:00', 'Today 16:00']
     },
     {
       id: 10,
@@ -178,7 +193,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Medical oncologist specializing in breast cancer and immunotherapy treatments.',
       languages: ['English'],
       education: 'University of Colorado School of Medicine',
-      certifications: ['Board Certified Medical Oncologist', 'Immunotherapy Specialist']
+      certifications: ['Board Certified Medical Oncologist', 'Immunotherapy Specialist'],
+      slots: ['Friday 10:00', 'Friday 14:00', 'Friday 16:00']
     },
     {
       id: 11,
@@ -194,7 +210,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Endocrinologist specializing in diabetes management and thyroid disorders.',
       languages: ['English', 'Spanish'],
       education: 'Emory University School of Medicine',
-      certifications: ['Board Certified Endocrinologist', 'Diabetes Educator']
+      certifications: ['Board Certified Endocrinologist', 'Diabetes Educator'],
+      slots: ['Today 10:00', 'Today 14:00', 'Today 16:00']
     },
     {
       id: 12,
@@ -210,7 +227,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Gastroenterologist with expertise in inflammatory bowel disease and liver disorders.',
       languages: ['English'],
       education: 'UC San Diego School of Medicine',
-      certifications: ['Board Certified Gastroenterologist', 'Hepatology Specialist']
+      certifications: ['Board Certified Gastroenterologist', 'Hepatology Specialist'],
+      slots: ['Tuesday 10:00', 'Tuesday 14:00', 'Tuesday 16:00']
     },
     {
       id: 13,
@@ -226,7 +244,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Pulmonologist specializing in asthma, COPD, and sleep disorders.',
       languages: ['English'],
       education: 'UT Southwestern Medical School',
-      certifications: ['Board Certified Pulmonologist', 'Sleep Medicine Specialist']
+      certifications: ['Board Certified Pulmonologist', 'Sleep Medicine Specialist'],
+      slots: ['Today 10:00', 'Today 14:00', 'Today 16:00']
     },
     {
       id: 14,
@@ -242,7 +261,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Urologist with expertise in kidney stones, prostate disorders, and minimally invasive surgery.',
       languages: ['English', 'Arabic'],
       education: 'UT Health San Antonio',
-      certifications: ['Board Certified Urologist', 'Robotic Surgery Specialist']
+      certifications: ['Board Certified Urologist', 'Robotic Surgery Specialist'],
+      slots: ['Thursday 10:00', 'Thursday 14:00', 'Thursday 16:00']
     },
     {
       id: 15,
@@ -258,7 +278,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Psychiatrist specializing in anxiety disorders, depression, and cognitive behavioral therapy.',
       languages: ['English', 'Mandarin'],
       education: 'NYU School of Medicine',
-      certifications: ['Board Certified Psychiatrist', 'CBT Specialist']
+      certifications: ['Board Certified Psychiatrist', 'CBT Specialist'],
+      slots: ['Today 10:00', 'Today 14:00', 'Today 16:00']
     },
     {
       id: 16,
@@ -274,7 +295,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Anesthesiologist with expertise in cardiac anesthesia and pain management.',
       languages: ['English'],
       education: 'UCLA David Geffen School of Medicine',
-      certifications: ['Board Certified Anesthesiologist', 'Pain Management Specialist']
+      certifications: ['Board Certified Anesthesiologist', 'Pain Management Specialist'],
+      slots: ['Monday 10:00', 'Monday 14:00', 'Monday 16:00']
     },
     {
       id: 17,
@@ -290,7 +312,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Emergency medicine physician with expertise in trauma care and critical care medicine.',
       languages: ['English', 'Hindi', 'Gujarati'],
       education: 'Northwestern University Feinberg School',
-      certifications: ['Board Certified Emergency Medicine', 'Advanced Trauma Life Support']
+      certifications: ['Board Certified Emergency Medicine', 'Advanced Trauma Life Support'],
+      slots: ['Now 10:00', 'Now 14:00', 'Now 16:00']
     },
     {
       id: 18,
@@ -306,7 +329,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Radiologist specializing in diagnostic imaging and interventional radiology procedures.',
       languages: ['English'],
       education: 'Baylor College of Medicine',
-      certifications: ['Board Certified Radiologist', 'Interventional Radiology Specialist']
+      certifications: ['Board Certified Radiologist', 'Interventional Radiology Specialist'],
+      slots: ['Tomorrow 10:00', 'Tomorrow 14:00', 'Tomorrow 16:00']
     },
     {
       id: 19,
@@ -322,7 +346,8 @@ const DoctorsPage: React.FC = () => {
       about: 'General surgeon with expertise in laparoscopic surgery and surgical oncology.',
       languages: ['English'],
       education: 'University of Arizona College of Medicine',
-      certifications: ['Board Certified General Surgeon', 'Laparoscopic Surgery Specialist']
+      certifications: ['Board Certified General Surgeon', 'Laparoscopic Surgery Specialist'],
+      slots: ['Next Week 10:00', 'Next Week 14:00', 'Next Week 16:00']
     },
     {
       id: 20,
@@ -338,7 +363,8 @@ const DoctorsPage: React.FC = () => {
       about: 'Neurologist specializing in movement disorders, Parkinson\'s disease, and deep brain stimulation.',
       languages: ['English', 'Russian'],
       education: 'Harvard Medical School',
-      certifications: ['Board Certified Neurologist', 'Movement Disorders Specialist']
+      certifications: ['Board Certified Neurologist', 'Movement Disorders Specialist'],
+      slots: ['Friday 10:00', 'Friday 14:00', 'Friday 16:00']
     }
   ];
 
@@ -401,8 +427,8 @@ const DoctorsPage: React.FC = () => {
                   onChange={(e) => setSelectedLocation(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
                 >
-                  {locations.map(location => (
-                    <option key={location} value={location}>{location}</option>
+                  {districts.map(district => (
+                    <option key={district} value={district}>{district}</option>
                   ))}
                 </select>
                 <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
@@ -512,7 +538,10 @@ const DoctorsPage: React.FC = () => {
                   </div>
 
                   <div className="flex space-x-3">
-                    <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center space-x-2">
+                    <button
+                      className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center space-x-2"
+                      onClick={() => setSlotModalDoctor(doctor)}
+                    >
                       <Calendar className="w-4 h-4" />
                       <span>Book Now</span>
                     </button>
@@ -556,6 +585,45 @@ const DoctorsPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Modal for slot selection */}
+      {slotModalDoctor && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Select a Time Slot for {slotModalDoctor.name}</h2>
+            <div className="flex flex-col gap-2 mb-4">
+              {slotModalDoctor.slots && slotModalDoctor.slots.length > 0 ? (
+                slotModalDoctor.slots.map((slot: string) => (
+                  <button
+                    key={slot}
+                    className="w-full py-2 px-4 rounded bg-blue-100 hover:bg-blue-600 hover:text-white transition"
+                    onClick={() => {
+                      setSlotModalDoctor(null);
+                      navigate('/appointment', {
+                        state: {
+                          type: 'video',
+                          selectedDoctor: slotModalDoctor,
+                          selectedSlot: slot
+                        }
+                      });
+                    }}
+                  >
+                    {slot}
+                  </button>
+                ))
+              ) : (
+                <div>No available slots</div>
+              )}
+            </div>
+            <button
+              className="w-full py-2 px-4 rounded bg-gray-200 hover:bg-gray-300"
+              onClick={() => setSlotModalDoctor(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

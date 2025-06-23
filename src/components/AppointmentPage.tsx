@@ -1,8 +1,18 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 function AppointmentPage() {
-  const [step, setStep] = useState<number>(0);
-  const [type, setType] = useState('');
+  const location = useLocation();
+  const navType = location.state?.type;
+  const navDoctor = location.state?.selectedDoctor;
+  const navSlot = location.state?.selectedSlot;
+
+  const [type, setType] = useState(navType || '');
+  const [selectedDoctor, setSelectedDoctor] = useState<any>(navDoctor || null);
+  const [selectedSlot, setSelectedSlot] = useState(navSlot || '');
+  const [step, setStep] = useState(navType && navDoctor ? 2 : 0); // 2 = problem description step
   const [problem, setProblem] = useState('');
   const [desc, setDesc] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -11,14 +21,14 @@ function AppointmentPage() {
   const [visitFirst, setVisitFirst] = useState('yes');
   const [preferredDoctor, setPreferredDoctor] = useState('');
   const [confirmed, setConfirmed] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState<any>(null);
-  const [selectedSlot, setSelectedSlot] = useState('');
   const [selectedHospital, setSelectedHospital] = useState<any>(null);
   const [doctorSpecialty, setDoctorSpecialty] = useState('');
   const [hospitalDistrict, setHospitalDistrict] = useState('');
   const [hospitalSector, setHospitalSector] = useState('');
   const [hospitalCell, setHospitalCell] = useState('');
   const [hospitalSearch, setHospitalSearch] = useState('');
+
+  const { user } = useAuth();
 
   // Dummy data for doctors and hospitals (only today slots)
   const doctors = [
@@ -58,9 +68,36 @@ function AppointmentPage() {
     e.preventDefault();
     setStep(3);
   }
+  async function createAppointment() {
+    if (!user) {
+      alert('You must be logged in to book an appointment.');
+      return;
+    }
+    const appointmentCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+    const data = {
+      user_id: user.id,
+      doctor_id: null,
+      appointment_date: selectedSlot, // ensure this is a valid timestamp string
+      appointment_type: type === 'video' ? 'video' : 'in-person',
+      status: 'pending',
+      room: type === 'inperson' ? 'Room 12' : null, // You can set this dynamically
+      video_url: type === 'video' ? 'https://your-meeting-url.com' : null, // Set dynamically if needed
+      patient_name: name,
+      doctor_name: selectedDoctor?.name || (selectedHospital?.name || null),
+      appointment_code: appointmentCode,
+      feedback: null
+    };
+    const { error } = await supabase.from('appointments').insert([data]);
+    if (error) {
+      alert('Error booking appointment: ' + error.message);
+    } else {
+      alert('Appointment booked! Your code: ' + appointmentCode);
+    }
+  }
   function handlePaymentSubmit(e: React.FormEvent) {
     e.preventDefault();
     setConfirmed(true);
+    createAppointment();
   }
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files[0]) {
@@ -202,7 +239,7 @@ function AppointmentPage() {
             {type === 'video' && selectedDoctor && (
               <div className="bg-blue-50 rounded p-3 text-sm mb-2">
                 <div><b>Doctor:</b> {selectedDoctor.name} ({selectedDoctor.specialty})</div>
-                <div><b>Time:</b> {selectedSlot}</div>
+                {selectedSlot && <div><b>Time:</b> {selectedSlot}</div>}
               </div>
             )}
             {type === 'inperson' && selectedHospital && (

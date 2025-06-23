@@ -9,6 +9,10 @@ interface Appointment {
   appointment_type: 'video' | 'in-person';
   doctor_name: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  patient_name?: string;
+  room?: string;
+  video_url?: string;
+  appointment_code?: string;
 }
 
 const AppointmentRecord: FC = () => {
@@ -56,51 +60,33 @@ const AppointmentRecord: FC = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">Appointment Record</h1>
-      
       {appointments.length === 0 ? (
         <div className="text-center py-8 bg-white rounded-lg shadow">
           <p className="text-gray-500">No appointments found</p>
         </div>
       ) : (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Doctor
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {appointments.map((appointment) => (
-                <tr key={appointment.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {new Date(appointment.appointment_date).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {appointment.doctor_name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap capitalize">
-                    {appointment.appointment_type}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(appointment.status)}`}>
-                      {appointment.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {appointments.map((appointment) => (
+            <div key={appointment.id} className="bg-white rounded-xl shadow p-6 flex flex-col gap-2 border border-gray-100">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-semibold capitalize text-blue-700">{appointment.appointment_type === 'video' ? 'Video Call' : 'In-person'}</span>
+                <span className={`text-xs font-bold px-3 py-1 rounded-full ${getStatusColor(appointment.status)}`}>{appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}</span>
+              </div>
+              <div className="text-gray-700 text-sm mb-1"><b>Doctor Name:</b> {appointment.doctor_name || '-'}</div>
+              <div className="text-gray-700 text-sm mb-1"><b>Patient Name:</b> {appointment.patient_name || '-'}</div>
+              <div className="text-gray-700 text-sm mb-1"><b>Time:</b> {appointment.appointment_date ? new Date(appointment.appointment_date).toLocaleString() : '-'}</div>
+              {appointment.appointment_type === 'in-person' ? (
+                <div className="text-gray-700 text-sm mb-1"><b>Room:</b> {appointment.room || '-'}</div>
+              ) : (
+                <div className="text-gray-700 text-sm mb-1"><b>Video URL:</b> {appointment.video_url ? <a href={appointment.video_url} className="text-blue-600 underline" target="_blank" rel="noopener noreferrer">Join Call</a> : '-'}</div>
+              )}
+              <div className="text-gray-700 text-sm mb-1"><b>Appointment ID:</b> {appointment.appointment_code || appointment.id}</div>
+              <div className="flex justify-between items-center mt-3 gap-2">
+                <button className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 transition">Message</button>
+                <button className="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200 transition">Details</button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

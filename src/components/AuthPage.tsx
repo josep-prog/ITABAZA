@@ -17,10 +17,11 @@ const AuthPage = () => {
   // Form data
   const [formData, setFormData] = useState({
     fullName: '',
+    password: '',
     confirmPassword: ''
   });
 
-  const { setUser, login, signUp } = useAuth();
+  const { login, signUp } = useAuth();
 
   // Handle form input changes
   const handleInputChange = (field: string, value: string) => {
@@ -35,6 +36,7 @@ const AuthPage = () => {
     setSuccess('');
     setFormData({
       fullName: '',
+      password: '',
       confirmPassword: ''
     });
   };
@@ -178,8 +180,8 @@ const AuthPage = () => {
                 type={showPassword ? 'text' : 'password'}
                 autoComplete={isLogin ? "current-password" : "new-password"}
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={isLogin ? password : formData.password}
+                onChange={isLogin ? (e) => setPassword(e.target.value) : (e) => handleInputChange('password', e.target.value)}
                 className="appearance-none block w-full px-3 py-2 pl-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                 placeholder="********"
                 disabled={loading}
