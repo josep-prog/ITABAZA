@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { User } from '@supabase/supabase-js'
-import { getCurrentUser, signOut } from '../lib/auth'
+import { getCurrentUser, signOut, signIn, signUp as signUpFn } from '../lib/auth'
+import { supabase } from '../lib/supabase'
 
 // Auth context interface
 interface AuthContextType {
   user: User | null
-  loading: boolean
+  login: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, fullName?: string) => Promise<void>
   logout: () => Promise<void>
-  setUser: (user: User | null) => void
 }
 
 // Create context
@@ -18,24 +19,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Check if user is logged in on app start
   useEffect(() => {
-    checkUser()
-  }, [])
+    // Set initial user from session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-  // Function to check current user
-  async function checkUser() {
-    try {
-      const { success, user } = await getCurrentUser()
-      if (success && user) {
-        setUser(user)
+    // Listen for auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error checking user:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+    );
+
+    // Cleanup subscription on unmount
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
 
   // Logout function
   async function logout() {
@@ -47,12 +50,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Login function
+  async function login(email: string, password: string) {
+    try {
+      const result = await signIn(email, password);
+      if (result.success) {
+        setUser(result.user ?? null);
+      } else {
+        throw new Error(result.error || 'Login failed');
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Sign up function
+  async function signUp(email: string, password: string, fullName?: string) {
+    try {
+      const result = await signUpFn(email, password, fullName || '');
+      if (result.success) {
+        setUser(result.user ?? null);
+      } else {
+        throw new Error(result.error || 'Sign up failed');
+      }
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Context value
   const value = {
     user,
-    loading,
+    login,
+    signUp,
     logout,
-    setUser
   }
 
   return (

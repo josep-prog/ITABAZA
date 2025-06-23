@@ -48,6 +48,23 @@ export async function signIn(email: string, password: string) {
   }
 }
 
+// Sign in with Google
+export async function signInWithGoogle() {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true, data };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Google sign in failed' };
+  }
+}
+
 // Sign out function
 export async function signOut() {
   try {

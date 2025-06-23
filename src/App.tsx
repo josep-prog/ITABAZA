@@ -1,66 +1,61 @@
-import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/Header';
-import HeroSection from './components/HeroSection';
-import StatsSection from './components/StatsSection';
+import AuthPage from './components/AuthPage';
 import DoctorsPage from './components/DoctorsPage';
 import AppointmentPage from './components/AppointmentPage';
-import AuthPage from './components/AuthPage';
+import DashboardLayout from './components/dashboard/DashboardLayout';
+import AppointmentRecord from './components/dashboard/AppointmentRecord';
+import Documents from './components/dashboard/Documents';
+import Messages from './components/dashboard/Messages';
+import HeroSection from './components/HeroSection';
+import StatsSection from './components/StatsSection';
 
-function AppContent() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState('home');
-  const { user, logout } = useAuth();
-
-  const handleNavigate = (page: string) => {
-    setCurrentPage(page);
-    setIsMobileMenuOpen(false);
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    setCurrentPage('home');
-  };
-
-  const renderCurrentPage = () => {
-    switch (currentPage) {
-      case 'doctors':
-        return <DoctorsPage />;
-      case 'appointment':
-        return <AppointmentPage />;
-      case 'auth':
-        return <AuthPage onNavigate={handleNavigate} />;
-      case 'home':
-      default:
-        return (
-          <>
-            <HeroSection />
-            <StatsSection />
-          </>
-        );
-    }
-  };
-
-  return (
-    <div className="min-h-screen">
-      <Header 
-        isMobileMenuOpen={isMobileMenuOpen}
-        setIsMobileMenuOpen={setIsMobileMenuOpen}
-        currentPage={currentPage}
-        onNavigate={handleNavigate}
-        user={user}
-        onLogout={handleLogout}
-      />
-      {renderCurrentPage()}
-    </div>
-  );
-}
+// Protected Route wrapper component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <div className="min-h-screen bg-gray-50">
+          <Header />
+          <Routes>
+            <Route path="/" element={
+              <>
+                <HeroSection />
+                <StatsSection />
+              </>
+            } />
+            <Route path="/login" element={<AuthPage />} />
+            <Route path="/doctors" element={<DoctorsPage />} />
+            <Route path="/appointment" element={<AppointmentPage />} />
+            
+            {/* Dashboard Routes */}
+            <Route path="/dashboard/*" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <Routes>
+                    <Route index element={<Navigate to="/dashboard/appointments" replace />} />
+                    <Route path="appointments" element={<AppointmentRecord />} />
+                    <Route path="documents" element={<Documents />} />
+                    <Route path="messages" element={<Messages />} />
+                  </Routes>
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </div>
+      </AuthProvider>
+    </Router>
   );
 }
 
