@@ -3,8 +3,8 @@ import baseURL from './baseURL.js';
 form.addEventListener("submit",async (e)=>{
     e.preventDefault();
     let obj={
-        payload:form.exampleFormControlInput1.value,
-        password:form.exampleFormControlInput2.value
+        payload:document.getElementById("exampleFormControlInput1").value,
+        password:document.getElementById("exampleFormControlInput2").value
     }
     try {
         let res=await fetch(baseURL+"user/signin",{
@@ -27,5 +27,6 @@ form.addEventListener("submit",async (e)=>{
         }
       } catch (error) {
         console.log(error);
+        swal("Error", "Login failed. Please check your connection.", "error");
       }
 })

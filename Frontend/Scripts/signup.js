@@ -3,11 +3,11 @@ let form =document.querySelector("form");
     form.addEventListener("submit",async (e)=>{
         e.preventDefault();
         let obj={
-            first_name:form.exampleFormControlInput1.value,
-            last_name:form.exampleFormControlInput2.value,
-            email:form.exampleFormControlInput3.value,
-            mobile:form.exampleFormControlInput4.value,
-            password:form.exampleFormControlInput5.value,
+            first_name:document.getElementById("exampleFormControlInput1").value,
+            last_name:document.getElementById("exampleFormControlInput2").value,
+            email:document.getElementById("exampleFormControlInput3").value,
+            mobile:document.getElementById("exampleFormControlInput4").value,
+            password:document.getElementById("exampleFormControlInput5").value,
         }
       try {
 
@@ -29,5 +29,6 @@ let form =document.querySelector("form");
        // alert("Successfully registered");
       } catch (error) {
         console.log(error);
+        swal("Error", "Failed to send OTP. Please try again.", "error");
       }
     })
