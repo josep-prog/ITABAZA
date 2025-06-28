@@ -19,7 +19,7 @@ async function testConnection() {
         console.log("4. Click 'Run' to execute the schema");
       }
       
-      return;
+      return false;
     }
     
     console.log("✅ Database connection successful!");
@@ -41,9 +41,17 @@ async function testConnection() {
       }
     }
     
+    return true;
+    
   } catch (error) {
     console.error("❌ Connection test failed:", error.message);
+    return false;
   }
 }
 
-testConnection(); 
+// Run test if this file is executed directly
+if (require.main === module) {
+  testConnection();
+}
+
+module.exports = { testConnection }; 

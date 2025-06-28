@@ -16,14 +16,16 @@ form.addEventListener("submit",async (e)=>{
         })
         let data=await res.json();
         console.log(data);
-        if(!data || data.mag || data.msg=="Error in Login" || data.msg=="User not Found"){
+        if(data.msg && (data.msg=="Error in Login" || data.msg=="User not Found" || data.msg=="Wrong Password")){
             alert("Wrong Credentials");
-        }else{
+        }else if(data.message && data.message=="Login Successful"){
             localStorage.setItem("token",data.token);
             localStorage.setItem("userName",data.name);
             swal("", "Login Successful", "success").then(function() {
                 window.location.href="./book.appointment.html";
             });
+        }else{
+            alert("Login failed. Please try again.");
         }
       } catch (error) {
         console.log(error);

@@ -3,15 +3,18 @@ const { AppointmentModel } = require("../models/appointment.model");
 const { DepartmentModel } = require("../models/department.model");
 const { DoctorModel } = require("../models/doctor.model");
 const { UserModel } = require("../models/user.model");
+const bcrypt = require("bcrypt");
 const adminDashRouter = require("express").Router();
 
 
 adminDashRouter.post("/signin", async (req, res) => {
   let { email, password } = req.body;
   try {
-    let admin = await AdminModel.findOne({ email: email });
+    let admin = await AdminModel.findByEmail(email);
     if (admin) {
-      if (password === admin.password) {
+      // Compare password using bcrypt
+      const isPasswordValid = await bcrypt.compare(password, admin.password);
+      if (isPasswordValid) {
         res.send({
           message: "Login Successful",
         });
@@ -33,11 +36,20 @@ adminDashRouter.post("/signin", async (req, res) => {
 adminDashRouter.post('/signup',async(req,res)=>{
   let { name, email, password } = req.body;
   try {
-    let admin =new  AdminModel({name, email,password})
-    await admin.save();
-    res.send('Admin Signup')
-  } catch (error) {
+    // Hash the password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
     
+    const adminData = {
+      name,
+      email,
+      password: hashedPassword
+    };
+    
+    const admin = await AdminModel.create(adminData);
+    res.send('Admin Signup Successful');
+  } catch (error) {
+    console.error("Admin signup error:", error);
+    res.status(500).send({ msg: "Error in Admin Signup", error: error.message });
   }
 })
 
