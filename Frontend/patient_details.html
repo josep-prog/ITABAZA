@@ -132,19 +132,8 @@
 
         // Function to handle appointment type selection
         function selectAppointmentType(type) {
-            // Store appointment type and doctor info
-            const doctorInfo = {
-                name: document.getElementById('doctor-name').textContent,
-                department: document.getElementById('doctor-dept').textContent,
-                qualification: document.getElementById('doctor-qual').textContent,
-                experience: document.getElementById('doctor-exp').textContent,
-                fee: document.getElementById('consultation-fee').textContent,
-                image: document.getElementById('doctor-image').src
-            };
-            
-            localStorage.setItem('selectedDoctor', JSON.stringify(doctorInfo));
+            // Only set the appointment type, do not overwrite docObj or formObj
             localStorage.setItem('appointmentType', type);
-            
             // Show confirmation before redirect
             swal({
                 title: "Confirm Appointment Type",
@@ -154,23 +143,25 @@
             })
             .then((willProceed) => {
                 if (willProceed) {
-                    // Redirect based on appointment type
-                    window.location.href = type === 'video' ? 'video-call-appointment.html' : 'in-person-appointment.html';
+                    // Redirect to problem description page for both types
+                    window.location.href = 'problem-description.html';
                 }
             });
         }
 
         // Load doctor information when page loads
         window.onload = function() {
-            const doctorInfo = JSON.parse(localStorage.getItem('selectedDoctor')) || {};
+            // Prefer docObj (from Find Doctors flow), fallback to selectedDoctor (from direct flow)
+            let docObj = JSON.parse(localStorage.getItem('docObj'));
+            let doctorInfo = docObj || JSON.parse(localStorage.getItem('selectedDoctor')) || {};
             if (doctorInfo.name) {
                 document.getElementById('doctor-name').textContent = doctorInfo.name;
-                document.getElementById('doctor-dept').textContent = doctorInfo.department;
-                document.getElementById('doctor-qual').textContent = doctorInfo.qualification;
-                document.getElementById('doctor-exp').textContent = doctorInfo.experience;
-                document.getElementById('consultation-fee').textContent = doctorInfo.fee;
-                if (doctorInfo.image) {
-                    document.getElementById('doctor-image').src = doctorInfo.image;
+                document.getElementById('doctor-dept').textContent = doctorInfo.dept || doctorInfo.department;
+                document.getElementById('doctor-qual').textContent = doctorInfo.qual || doctorInfo.qualification;
+                document.getElementById('doctor-exp').textContent = doctorInfo.exp || doctorInfo.experience;
+                document.getElementById('consultation-fee').textContent = doctorInfo.fee || 'Rs. 1,000';
+                if (doctorInfo.img || doctorInfo.image) {
+                    document.getElementById('doctor-image').src = doctorInfo.img || doctorInfo.image;
                 }
             }
         }

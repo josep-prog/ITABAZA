@@ -13,6 +13,27 @@ class ProblemDescriptionManager {
     }
 
     loadStoredData() {
+        // Compatibility: If sessionStorage is empty, pull from localStorage (new flow)
+        if (!sessionStorage.getItem('selectedDoctor') || !sessionStorage.getItem('selectedSlot') || !sessionStorage.getItem('selectedDate')) {
+            const docObj = JSON.parse(localStorage.getItem('docObj'));
+            const formObj = JSON.parse(localStorage.getItem('formObj'));
+            const appointmentType = localStorage.getItem('appointmentType');
+            if (docObj && formObj) {
+                // Map docObj to expected doctor structure
+                const doctorData = {
+                    doctor_name: docObj.name,
+                    department: docObj.dept,
+                    qualifications: docObj.qual,
+                    experience: docObj.exp,
+                    image: docObj.img,
+                    docID: docObj.docID
+                };
+                sessionStorage.setItem('selectedDoctor', JSON.stringify(doctorData));
+                sessionStorage.setItem('selectedSlot', formObj.slot);
+                sessionStorage.setItem('selectedDate', formObj.date);
+                sessionStorage.setItem('consultationType', appointmentType === 'video' ? 'video-call' : 'in-person');
+            }
+        }
         const doctorData = sessionStorage.getItem('selectedDoctor');
         const slot = sessionStorage.getItem('selectedSlot');
         const date = sessionStorage.getItem('selectedDate');
@@ -156,4 +177,77 @@ class ProblemDescriptionManager {
 }
 
 // Initialize the problem description manager
-window.problemDescriptionManager = new ProblemDescriptionManager(); 
+window.problemDescriptionManager = new ProblemDescriptionManager();
+
+// --- Audio Recording Logic ---
+let mediaRecorder, audioChunks = [], timer, seconds = 0;
+const maxSeconds = 300; // 5 minutes
+
+const recordBtn = document.getElementById('recordBtn');
+const stopBtn = document.getElementById('stopBtn');
+const playBtn = document.getElementById('playBtn');
+const timerDisplay = document.getElementById('timerDisplay');
+const audioPlayback = document.getElementById('audioPlayback');
+let audioBlob, audioUrl;
+
+function showRecordingError(message) {
+  alert(message);
+  recordBtn.disabled = true;
+  stopBtn.disabled = true;
+  playBtn.disabled = true;
+}
+
+// Check for mediaDevices and getUserMedia support
+if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+  showRecordingError('Audio recording is not supported in this browser or context. Please use a modern browser and ensure you are accessing this page over HTTPS.');
+} else {
+  recordBtn.disabled = false;
+  stopBtn.disabled = true;
+  playBtn.disabled = true;
+
+  recordBtn.onclick = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        audioUrl = URL.createObjectURL(audioBlob);
+        audioPlayback.src = audioUrl;
+        audioPlayback.style.display = 'block';
+        playBtn.disabled = false;
+      };
+      mediaRecorder.start();
+      seconds = 0;
+      timerDisplay.textContent = '00:00';
+      timer = setInterval(() => {
+        seconds++;
+        timerDisplay.textContent = new Date(seconds * 1000).toISOString().substr(14, 5);
+        if (seconds >= maxSeconds) {
+          stopBtn.click();
+        }
+      }, 1000);
+      recordBtn.disabled = true;
+      stopBtn.disabled = false;
+    } catch (err) {
+      showRecordingError('Could not start audio recording. Please check your browser permissions and try again.');
+      console.error('Audio recording error:', err);
+    }
+  };
+
+  stopBtn.onclick = () => {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    clearInterval(timer);
+    recordBtn.disabled = false;
+    stopBtn.disabled = true;
+  };
+
+  playBtn.onclick = () => {
+    if (audioPlayback.src) {
+      audioPlayback.play();
+    }
+  };
+} 

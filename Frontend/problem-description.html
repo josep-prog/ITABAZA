@@ -279,7 +279,7 @@
         <!-- Navbar Imported -->
     </section> 
 
-    <div class="problem-description-container">
+    <div class="problem-description-container mt-3" style="margin-top: 2.5rem !important;">
         <div class="container">
             <div class="page-header">
                 <h1 class="page-title">Describe Your Problem</h1>
@@ -344,6 +344,17 @@
                                 required
                             ></textarea>
                             <div class="character-count" id="char-count">0/1000 characters</div>
+                        </div>
+                        <!-- Audio Recording Controls -->
+                        <div class="form-group">
+                            <label for="audio-recording">Or record your problem (max 5 min):</label>
+                            <div id="audio-controls">
+                                <button type="button" id="recordBtn">Record</button>
+                                <button type="button" id="stopBtn" disabled>Stop</button>
+                                <button type="button" id="playBtn" disabled>Play</button>
+                                <span id="timerDisplay">00:00</span>
+                                <audio id="audioPlayback" controls style="display:none"></audio>
+                            </div>
                         </div>
                     </div>
                     

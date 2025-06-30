@@ -197,118 +197,142 @@ function renderdata(arr) {
         showNoDoctors();
         return;
     }
-    
+
+    const isRowView = docsCont.classList.contains('row-view');
     docsCont.innerHTML = arr.map((elem, index) => {
         if (!elem || !elem.doctor_name) {
             console.warn('Invalid doctor data:', elem);
             return '';
         }
-        
         const departmentName = getDepartmentName(elem.department_id);
-        const statusColor = elem.status ? "color: #28a745" : "color: #dc3545";
-        const statusText = elem.status ? "Available" : "Currently Unavailable";
         const isAvailable = elem.status && elem.is_available;
-        
-        return `
-            <div class="doc-card" style="opacity: ${isAvailable ? '1' : '0.7'}">
-                <div class="top-cont">
-                    <div class="doc-profile">
-                        <div class="doc-img">
-                            <img alt="doc-pfp" 
-                                 src="${getSafeImageUrl(elem.image)}" 
-                                 onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjY2NjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+RG9jdG9yPC90ZXh0Pgo8L3N2Zz4K';" />
-                        </div>
-                        <div class="doc-desc">
-                            <h2>${elem.doctor_name}</h2>
-                            <h4>Department: ${departmentName}</h4>
-                            <p>Experience: ${elem.experience || 'Not specified'}</p>
-                            <h4>Qualification: ${elem.qualifications || 'Not specified'}</h4>
-                            <p style="color:white; display: none;">${elem._id || elem.id}</p>
-                            <p>Rs.1,000 Consultation Fee</p>
-                            <p style="${statusColor}">${statusText}</p>
-                            ${!isAvailable ? '<p style="color: #ffc107; font-size: 12px;">This doctor is not accepting appointments at the moment</p>' : ''}
-                        </div>
+
+        if (isRowView) {
+            // Full info row: image, name, department, experience, qualification, fee, availability, and Book button
+            return `
+                <div class="doc-card minimal-row">
+                    <div class="doc-img"><img alt="doc-pfp" src="${getSafeImageUrl(elem.image)}" /></div>
+                    <div class="row-info">
+                        <div class="row-name">${elem.doctor_name}</div>
+                        <div class="row-dept">Department: ${departmentName}</div>
+                        <div class="row-exp">Experience: ${elem.experience || 'Not specified'} years</div>
+                        <div class="row-qual">Qualification: ${elem.qualifications || 'Not specified'}</div>
+                        <div class="row-fee">Rs.1,000 Consultation Fee</div>
+                        <div class="row-available">${isAvailable ? 'Available' : 'Not Available'}</div>
                     </div>
-                    <div class="doc-book">
-                        <div class="select-app">
-                            <form ${!isAvailable ? 'style="pointer-events: none; opacity: 0.5;"' : ''}>
-                                <div>
-                                    <label>Select Date:</label>
-                                    <select required="true" name="date" ${!isAvailable ? 'disabled' : ''}>
-                                        <option value="APRIL_04">11-Apr-23</option>
-                                        <option value="APRIL_05">12-Apr-23</option>
-                                        <option value="APRIL_06">13-Apr-23</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label>Select Slot:</label>
-                                    <select required="true" name="slot" ${!isAvailable ? 'disabled' : ''}>
-                                        <option value="2-3">2PM to 3PM</option>
-                                        <option value="4-5">4PM to 5PM</option>
-                                        <option value="7-8">6PM to 7PM</option>
-                                    </select>
-                                </div>
-                                <input type="submit" value="${isAvailable ? 'Book Appointment Now' : 'Not Available'}" 
-                                       ${!isAvailable ? 'disabled' : ''}/>
-                                <p style="color:green; margin-top:0.3rem; text-align:center">No Booking Fee<p>
-                            </form>
+                    <div class="row-action">
+                        <button class="row-book-btn" ${!isAvailable ? 'disabled style="opacity:0.5;pointer-events:none;"' : ''}>Book Appointment</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Clean, minimal card view (no date/slot selection)
+            return `
+                <div class="doc-card" style="opacity: ${isAvailable ? '1' : '0.7'}">
+                    <div class="top-cont">
+                        <div class="doc-profile">
+                            <div class="doc-img">
+                                <img alt="doc-pfp" 
+                                     src="${getSafeImageUrl(elem.image)}" 
+                                     onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjY2NjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+RG9jdG9yPC90ZXh0Pgo8L3N2Zz4K';" />
+                            </div>
+                            <div class="doc-desc">
+                                <h2>${elem.doctor_name}</h2>
+                                <h4>Department: ${departmentName}</h4>
+                                <p>Experience: ${elem.experience || 'Not specified'} years</p>
+                                <h4>Qualification: ${elem.qualifications || 'Not specified'}</h4>
+                                <p style="color:white; display: none;">${elem._id || elem.id}</p>
+                                <p>Rs.1,000 Consultation Fee</p>
+                                <p style="color: #28a745">${isAvailable ? 'Available' : 'Not Available'}</p>
+                            </div>
+                        </div>
+                        <div class="doc-book" style="display: flex; align-items: center; justify-content: center;">
+                            <button class="clean-book-btn" style="padding:12px 24px;background:#0b9c6c;color:#fff;border:none;border-radius:8px;cursor:pointer;${!isAvailable ? 'opacity:0.5;pointer-events:none;' : ''}">
+                                Book Appointment
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
     }).join("");
 
-    // Enhanced form handling with better error handling
-    let forms = document.querySelectorAll(".select-app>form");
-    for (let form of forms) {
-        form.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            
-            if (!localStorage.getItem("token")) {
-                swal("", "Please Login!", "warning").then(function() {
-                    window.location.href = "./login.html";
-                });
-                return;
-            }
-            
-            try {
-                const formData = new FormData(form);
-                const doctorCard = form.closest('.doc-card');
-                const doctorInfo = {
-                    img: doctorCard.querySelector('.doc-img img').src,
-                    name: doctorCard.querySelector('.doc-desc h2').textContent,
-                    dept: doctorCard.querySelector('.doc-desc h4').textContent,
-                    exp: doctorCard.querySelector('.doc-desc p').textContent,
-                    qual: doctorCard.querySelector('.doc-desc h4:nth-of-type(2)').textContent,
-                    docID: doctorCard.querySelector('.doc-desc p[style*="color:white"]').textContent
-                };
-                
-                const formObj = {
-                    "date": formData.get('date'),
-                    "slot": formData.get('slot')
-                };
-                
-                console.log('Booking doctor:', doctorInfo);
-                
-                const result = await swal({
-                    title: "Confirm Booking?",
-                    text: `Book appointment with Dr. ${doctorInfo.name}?`,
-                    icon: "info",
-                    buttons: ["Cancel", "Confirm"],
-                    dangerMode: false,
-                });
-                
-                if (result) {
-                    localStorage.setItem("formObj", JSON.stringify(formObj));
-                    localStorage.setItem("docObj", JSON.stringify(doctorInfo));
-                    window.location.href = "./patient_details.html";
+    // Only attach form listeners in card view
+    if (!isRowView) {
+        // Attach booking button listeners for clean card view
+        let bookBtns = document.querySelectorAll('.clean-book-btn');
+        bookBtns.forEach((btn, idx) => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                if (!localStorage.getItem("token")) {
+                    swal("", "Please Login!", "warning").then(function() {
+                        window.location.href = "./login.html";
+                    });
+                    return;
                 }
-                
-            } catch (error) {
-                console.error('Error processing booking:', error);
-                swal("Error", "Failed to process booking. Please try again.", "error");
-            }
+                try {
+                    const doctorCard = btn.closest('.doc-card');
+                    const doctorInfo = {
+                        img: doctorCard.querySelector('.doc-img img').src,
+                        name: doctorCard.querySelector('.doc-desc h2').textContent,
+                        dept: doctorCard.querySelector('.doc-desc h4').textContent,
+                        exp: doctorCard.querySelector('.doc-desc p').textContent,
+                        qual: doctorCard.querySelector('.doc-desc h4:nth-of-type(2)').textContent,
+                        docID: doctorCard.querySelector('.doc-desc p[style*="color:white"]').textContent
+                    };
+                    // Assume appointment is for today (per day only)
+                    const formObj = {
+                        date: new Date().toISOString().split('T')[0],
+                        slot: 'default' // No slot selection
+                    };
+                    const result = await swal({
+                        title: "Confirm Booking?",
+                        text: `Book appointment with Dr. ${doctorInfo.name}?`,
+                        icon: "info",
+                        buttons: ["Cancel", "Confirm"],
+                        dangerMode: false,
+                    });
+                    if (result) {
+                        localStorage.setItem("formObj", JSON.stringify(formObj));
+                        localStorage.setItem("docObj", JSON.stringify(doctorInfo));
+                        window.location.href = "./patient_details.html";
+                    }
+                } catch (error) {
+                    console.error('Error processing booking:', error);
+                    swal("Error", "Failed to process booking. Please try again.", "error");
+                }
+            });
+        });
+    } else {
+        // Attach row view listeners: Book button and row click
+        let rowCards = document.querySelectorAll('.doc-card.minimal-row');
+        rowCards.forEach((row, idx) => {
+            const bookBtn = row.querySelector('.row-book-btn');
+            // Book button click
+            bookBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const elem = arr[idx];
+                if (!elem) return;
+                // Prepare full doctor info for booking
+                const doctorInfo = {
+                    img: getSafeImageUrl(elem.image),
+                    name: elem.doctor_name,
+                    dept: getDepartmentName(elem.department_id),
+                    exp: (elem.experience || 'Not specified') + ' years',
+                    qual: elem.qualifications || 'Not specified',
+                    docID: elem._id || elem.id
+                };
+                localStorage.setItem("docObj", JSON.stringify(doctorInfo));
+                // For row view, you may want to ask for slot/date on next page
+                window.location.href = "./patient_details.html";
+            });
+            // Row click for future details
+            row.addEventListener('click', (e) => {
+                if (e.target.classList.contains('row-book-btn')) return;
+                // Placeholder: show alert or open modal for doctor details
+                // In future, replace with modal or navigation
+                alert('Doctor details coming soon!');
+            });
         });
     }
 }
@@ -394,18 +418,6 @@ docFilterTag.addEventListener("change", async (e) => {
     }
 });
 
-// Reset filters
-document.querySelector("#filter-approval>p").addEventListener("click", async (e) => {
-    try {
-        docInputTag.value = '';
-        docFilterTag.value = '';
-        getdata();
-    } catch (err) {
-        console.error('Reset error:', err);
-        showError('Failed to reset filters');
-    }
-});
-
 // Initialize on page load
 window.addEventListener("load", async (e) => {
     let deptID = localStorage.getItem("deptID");
@@ -451,3 +463,35 @@ window.addEventListener('focus', () => {
         getdata();
     }
 });
+
+// View toggle logic
+const cardViewBtn = document.getElementById('card-view-btn');
+const rowViewBtn = document.getElementById('row-view-btn');
+
+function setCardView() {
+    docsCont.classList.remove('row-view');
+    docsCont.classList.add('card-view');
+    if (cardViewBtn) cardViewBtn.style.color = '#0077c0';
+    if (rowViewBtn) rowViewBtn.style.color = '#333';
+}
+
+function setRowView() {
+    docsCont.classList.add('row-view');
+    docsCont.classList.remove('card-view');
+    if (rowViewBtn) rowViewBtn.style.color = '#0077c0';
+    if (cardViewBtn) cardViewBtn.style.color = '#333';
+}
+
+if (cardViewBtn && rowViewBtn) {
+    cardViewBtn.addEventListener('click', () => {
+        setCardView();
+        if (doctorsCache) renderdata(doctorsCache);
+    });
+    rowViewBtn.addEventListener('click', () => {
+        setRowView();
+        if (doctorsCache) renderdata(doctorsCache);
+    });
+}
+
+// Set default view to card view on load
+setCardView();

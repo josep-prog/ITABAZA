@@ -26,8 +26,14 @@
         <div class="doc-search-bar">
             <div id="filter-approval">
                 <h2>Doctors</h2>
-                <button>Filter Avaialble Doctors</button>
-                <p>Reset Filters</p>
+                <div id="view-toggle" style="display: flex; gap: 10px; align-items: center;">
+                    <button id="card-view-btn" title="Card View" style="background: none; border: none; cursor: pointer; font-size: 1.5rem;">
+                        <span class="material-symbols-sharp">grid_view</span>
+                    </button>
+                    <button id="row-view-btn" title="Row View" style="background: none; border: none; cursor: pointer; font-size: 1.5rem;">
+                        <span class="material-symbols-sharp">view_list</span>
+                    </button>
+                </div>
             </div>
             <div id="doc-sf">
                 <div id="doc-sf-left">
