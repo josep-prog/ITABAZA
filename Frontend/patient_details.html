@@ -1,124 +1,181 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./Styles/nav.css">
     <link rel="stylesheet" href="./css/all.css">
     <link rel="stylesheet" href="./Styles/patient.details.css">
     <link rel="stylesheet" href="./Styles/footer.css">
     <link rel="stylesheet" href="./Styles/responsive.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
-    <title>Patient_form</title>
+    <title>Select Appointment Type - Medistar</title>
     <link rel="icon" href="./Files/Medistar-logo-crop.jpeg">
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
-      *{
-          box-sizing: border-box;
-      }
-      body{
-          font-family: poppins, sans-serif;
-          font-size: 0.9rem;
-      }
-  </style>
-  </head>
-  <body>
-
+</head>
+<body>
     <section id="navbar">
-      <!-- Navbar Imported -->
-  </section> 
-    
-<div id="main-cont">
-    <div id="doctors-container">
-        <!-- Fetch Data -->
-    </div>
-    <div data-aos="fade-left" data-aos-duration="800" id="payment-container">
-        <div class="card">
-            <div class="card-body">
-                <div>
-                    <h3>Patient Details</h3>
+        <!-- Navbar Imported -->
+    </section>
+
+    <div class="container py-5">
+        <div class="row">
+            <!-- Doctor Information Card -->
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <img id="doctor-image" src="./Files/default-doctor.png" alt="Doctor" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                            <h4 id="doctor-name" class="mb-0">Dr. Joseph Nishimwe</h4>
+                            <p id="doctor-dept" class="text-muted">Cardiology</p>
+                        </div>
+                        <div class="doctor-details">
+                            <p><i class="fas fa-graduation-cap me-2"></i><span id="doctor-qual">MBBS, MD Cardiology</span></p>
+                            <p><i class="fas fa-briefcase me-2"></i><span id="doctor-exp">12 years experience</span></p>
+                            <p><i class="fas fa-stethoscope me-2"></i>Specializes in heart diseases</p>
+                            <p><i class="fas fa-money-bill-wave me-2"></i><span id="consultation-fee">Rs. 1,000</span></p>
+                            <div class="text-center mt-4">
+                                <span class="badge bg-success p-2">
+                                    <i class="fas fa-check-circle me-1"></i>Available Today
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              <div>
-                <p>This in-clinic appointment is for</p>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1">
-                <label  class="form-check-label" for="flexRadioDefault1">
-                  Myself
-                </label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked>
-                <label class="form-check-label" for="flexRadioDefault2">
-                 Someone Else
-                </label>
-              </div>
-              <p>Please provide the following information</p>
-              <form id="PatientForm">
-                <div class="mb-3" style="padding: 1%;">
-                  <input name="name" required="true" type="name" class="form-control" id="exampleFormControlInput1" placeholder="Enter Name">
-                </div>
-                <div class="mb-3" style="padding: 1%;">
-                  <input name="age" required="true" type="number" class="form-control" id="exampleFormControlInput1" placeholder="Enter Age">
-                </div>
-                <div class="mb-3" style="padding: 1%;">
-                  <input name="gender" required="true" type="text" class="form-control" id="exampleFormControlInput1" placeholder="Enter Gender">
-                </div>
-                <div class="mb-3" style="padding: 1%;">
-                  <input name="address" required="true" type="text" class="form-control" id="exampleFormControlInput1" placeholder="Enter Address">
-                </div>
-                <div class="mb-3" style="padding: 1%;">
-                  <input name="problem" required="true" type="text" class="form-control" id="exampleFormControlInput1" placeholder="Enter Problem Description">
-                </div>
-                <input type="submit" value="Confirm your appointment" class="btn btn-info" style="color: white; width:80%;display:block; margin:auto">
-              </form>
-                  <!-- <div>
-                    <p>Has the patient taken covid-19 vaccination?</p>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked>
-                    <label class="form-check-label" for="flexRadioDefault2">
-                     Yes
-                    </label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked>
-                    <label class="form-check-label" for="flexRadioDefault2">
-                     No
-                    </label>
-                  </div> -->
-                  <!-- <div class="form-check">
-                    <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" checked>
-                    <label class="form-check-label" for="flexRadioDefault2">
-                     Partially
-                    </label>
-                  </div> -->
             </div>
-            <h6 style=" width:80%; margin: 1rem">* Updates will be sent to your e-mail</h6>
-          </div>
+
+            <!-- Appointment Type Selection -->
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h3 class="card-title mb-4">Select Appointment Type</h3>
+                        
+                        <div class="row g-4">
+                            <!-- Video Consultation Option -->
+                            <div class="col-md-6">
+                                <div class="appointment-option card h-100" onclick="selectAppointmentType('video')" data-aos="fade-up">
+                                    <div class="card-body text-center">
+                                        <div class="icon-circle mb-3">
+                                            <i class="fas fa-video"></i>
+                                        </div>
+                                        <h5>Video Consultation</h5>
+                                        <p class="text-muted">Consult from the comfort of your home</p>
+                                        <ul class="list-unstyled text-start">
+                                            <li><i class="fas fa-check-circle text-success me-2"></i>No travel required</li>
+                                            <li><i class="fas fa-check-circle text-success me-2"></i>Digital prescription</li>
+                                            <li><i class="fas fa-check-circle text-success me-2"></i>Secure video platform</li>
+                                            <li><i class="fas fa-check-circle text-success me-2"></i>Follow-up messages</li>
+                                        </ul>
+                                        <div class="mt-4">
+                                            <span class="badge bg-primary p-2">
+                                                <i class="fas fa-clock me-1"></i>Available in 30 mins
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- In-Person Visit Option -->
+                            <div class="col-md-6">
+                                <div class="appointment-option card h-100" onclick="selectAppointmentType('in-person')" data-aos="fade-up" data-aos-delay="100">
+                                    <div class="card-body text-center">
+                                        <div class="icon-circle mb-3">
+                                            <i class="fas fa-hospital-user"></i>
+                                        </div>
+                                        <h5>In-Person Visit</h5>
+                                        <p class="text-muted">Visit the doctor at hospital</p>
+                                        <ul class="list-unstyled text-start">
+                                            <li><i class="fas fa-check-circle text-success me-2"></i>Physical examination</li>
+                                            <li><i class="fas fa-check-circle text-success me-2"></i>Detailed consultation</li>
+                                            <li><i class="fas fa-check-circle text-success me-2"></i>Immediate tests if needed</li>
+                                            <li><i class="fas fa-check-circle text-success me-2"></i>Direct medical attention</li>
+                                        </ul>
+                                        <div class="mt-4">
+                                            <span class="badge bg-info p-2">
+                                                <i class="fas fa-calendar-check me-1"></i>Next slot today 4 PM
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Information -->
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h6 class="mb-3"><i class="fas fa-info-circle me-2"></i>Important Information</h6>
+                            <ul class="small text-muted mb-0">
+                                <li>Appointment confirmation will be sent to your email</li>
+                                <li>Please arrive 15 minutes early for in-person visits</li>
+                                <li>Carry previous medical records if any</li>
+                                <li>Rescheduling is available up to 2 hours before the appointment</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    
-</div>
+    </div>
 
+    <section id="footer">
+        <!-- Footer Imported -->
+    </section>
 
-<section id="footer">
-  <!-- Footer Imported -->
-</section>
-    <script type="module" src="./Scripts/patient.details.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
- 
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
-      AOS.init();
-    </script>
-  </body>
+        AOS.init();
 
-  <script type="module" src="./Scripts/navbar.js"></script>
-<script type="module" src="./Scripts/footer.js"></script>
+        // Function to handle appointment type selection
+        function selectAppointmentType(type) {
+            // Store appointment type and doctor info
+            const doctorInfo = {
+                name: document.getElementById('doctor-name').textContent,
+                department: document.getElementById('doctor-dept').textContent,
+                qualification: document.getElementById('doctor-qual').textContent,
+                experience: document.getElementById('doctor-exp').textContent,
+                fee: document.getElementById('consultation-fee').textContent,
+                image: document.getElementById('doctor-image').src
+            };
+            
+            localStorage.setItem('selectedDoctor', JSON.stringify(doctorInfo));
+            localStorage.setItem('appointmentType', type);
+            
+            // Show confirmation before redirect
+            swal({
+                title: "Confirm Appointment Type",
+                text: `You have selected ${type === 'video' ? 'Video Consultation' : 'In-Person Visit'}. Proceed?`,
+                icon: "info",
+                buttons: true,
+            })
+            .then((willProceed) => {
+                if (willProceed) {
+                    // Redirect based on appointment type
+                    window.location.href = type === 'video' ? 'video-call-appointment.html' : 'in-person-appointment.html';
+                }
+            });
+        }
+
+        // Load doctor information when page loads
+        window.onload = function() {
+            const doctorInfo = JSON.parse(localStorage.getItem('selectedDoctor')) || {};
+            if (doctorInfo.name) {
+                document.getElementById('doctor-name').textContent = doctorInfo.name;
+                document.getElementById('doctor-dept').textContent = doctorInfo.department;
+                document.getElementById('doctor-qual').textContent = doctorInfo.qualification;
+                document.getElementById('doctor-exp').textContent = doctorInfo.experience;
+                document.getElementById('consultation-fee').textContent = doctorInfo.fee;
+                if (doctorInfo.image) {
+                    document.getElementById('doctor-image').src = doctorInfo.image;
+                }
+            }
+        }
+    </script>
+    <script type="module" src="./Scripts/navbar.js"></script>
+    <script type="module" src="./Scripts/footer.js"></script>
+</body>
 </html>
