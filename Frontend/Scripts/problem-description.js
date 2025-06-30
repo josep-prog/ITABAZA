@@ -130,15 +130,23 @@ class ProblemDescriptionManager {
         const symptoms = Array.from(form.querySelectorAll('input[name="symptoms"]:checked'))
             .map(checkbox => checkbox.value);
         
+        // Ensure doctor object has an 'id' property
+        const doctorWithId = {
+            ...this.appointmentData.doctor,
+            id: this.appointmentData.doctor.id || this.appointmentData.doctor.docID
+        };
+        
         const appointmentDetails = {
             ...this.appointmentData,
+            doctor: doctorWithId,
             patientAge: age,
             patientGender: gender,
             problemDescription: problemDescription,
             symptoms: symptoms,
             medicalHistory: formData.get('medicalHistory') || '',
             medications: formData.get('medications') || '',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            patientId: sessionStorage.getItem('userId') || localStorage.getItem('userId')
         };
 
         // Store appointment details

@@ -20,7 +20,28 @@ form.addEventListener("submit",async (e)=>{
             alert("Wrong Credentials");
         }else if(data.message && data.message=="Login Successful"){
             localStorage.setItem("token",data.token);
+            localStorage.setItem("authToken",data.token);
             localStorage.setItem("userName",data.name);
+            if (data.id) {
+                sessionStorage.setItem("userId", data.id);
+                localStorage.setItem("userId", data.id);
+            } else if (data.email) {
+                // Fallback: fetch user profile to get userId
+                fetch(baseURL+"/user/profile", {
+                    method: "GET",
+                    headers: {
+                        'Content-type': 'application/json',
+                        'Authorization': `Bearer ${data.token}`
+                    }
+                })
+                .then(res => res.json())
+                .then(profile => {
+                    if (profile && profile.id) {
+                        sessionStorage.setItem("userId", profile.id);
+                        localStorage.setItem("userId", profile.id);
+                    }
+                });
+            }
             swal("", "Login Successful", "success").then(function() {
                 window.location.href="./book.appointment.html";
             });

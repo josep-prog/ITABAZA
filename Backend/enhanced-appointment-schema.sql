@@ -1,3 +1,45 @@
+-- MIGRATION: Create appointments table if not exists (idempotent)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'appointments') THEN
+        CREATE TABLE appointments (
+            id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+            patient_id UUID REFERENCES users(id),
+            doctor_id UUID REFERENCES doctors(id),
+            patient_first_name VARCHAR(100) NOT NULL,
+            doc_first_name VARCHAR(100) NOT NULL,
+            age_of_patient INTEGER NOT NULL,
+            gender VARCHAR(10) NOT NULL,
+            address TEXT NOT NULL,
+            problem_description TEXT NOT NULL,
+            appointment_date VARCHAR(20) NOT NULL,
+            appointment_time VARCHAR(20),
+            consultation_type VARCHAR(20) DEFAULT 'in-person',
+            symptoms TEXT[],
+            medical_history TEXT,
+            medications TEXT,
+            status BOOLEAN DEFAULT FALSE,
+            payment_status BOOLEAN DEFAULT FALSE,
+            payment_transaction_id VARCHAR(100),
+            payment_simcard_holder VARCHAR(100),
+            payment_phone_number VARCHAR(20),
+            payment_method VARCHAR(20),
+            payment_amount DECIMAL(10,2),
+            payment_currency VARCHAR(3) DEFAULT 'RWF',
+            booking_source VARCHAR(20) DEFAULT 'web',
+            patient_email VARCHAR(255),
+            patient_phone VARCHAR(20),
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+    END IF;
+END $$;
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_appointments_patient ON appointments(patient_id);
+CREATE INDEX IF NOT EXISTS idx_appointments_doctor ON appointments(doctor_id);
+CREATE INDEX IF NOT EXISTS idx_appointments_date_time ON appointments(appointment_date, appointment_time);
+
 -- Enhanced Appointments table with additional fields for improved booking system
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS appointment_time VARCHAR(20);
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS consultation_type VARCHAR(20) DEFAULT 'in-person';

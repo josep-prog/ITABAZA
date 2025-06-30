@@ -117,6 +117,7 @@ userRouter.post("/signin", async (req, res) => {
     res.send({
       message: "Login Successful",
       token,
+      id: user.id,
       name: user.first_name,
       last_name: user.last_name,
       email: user.email,

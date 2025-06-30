@@ -110,6 +110,28 @@ class PaymentManager {
             return;
         }
 
+        // --- Robust doctorId and user checks ---
+        const doctor = this.appointmentDetails.doctor;
+        const doctorId = doctor && doctor.id;
+        if (!doctorId) {
+            alert('No doctor selected. Please go back and select a doctor.');
+            window.location.href = 'book.appointment.html';
+            return;
+        }
+        const userId = this.getCurrentUserId();
+        if (!userId || userId === 'temp-user-id') {
+            alert('You must be logged in to book an appointment.');
+            window.location.href = 'login.html';
+            return;
+        }
+        const authToken = this.getAuthToken();
+        if (!authToken) {
+            alert('Authentication error. Please log in again.');
+            window.location.href = 'login.html';
+            return;
+        }
+        // --- End robust checks ---
+
         // Show loading state
         const submitBtn = document.getElementById('confirm-payment-btn');
         const originalText = submitBtn.innerHTML;
@@ -119,8 +141,8 @@ class PaymentManager {
         try {
             // Prepare appointment data for backend
             const appointmentData = {
-                doctorId: this.appointmentDetails.doctor.id,
-                patientId: this.getCurrentUserId(), // This should come from user session
+                doctorId: doctorId,
+                patientId: userId, // This should come from user session
                 ageOfPatient: this.appointmentDetails.patientAge,
                 gender: this.appointmentDetails.patientGender,
                 address: this.getCurrentUserAddress(), // This should come from user session
@@ -142,7 +164,7 @@ class PaymentManager {
             };
 
             // Submit appointment to backend
-            const success = await this.submitAppointment(appointmentData);
+            const success = await this.submitAppointment(appointmentData, authToken);
             
             if (success) {
                 // Clear session storage
@@ -164,13 +186,13 @@ class PaymentManager {
         }
     }
 
-    async submitAppointment(appointmentData) {
+    async submitAppointment(appointmentData, authToken) {
         try {
             const response = await fetch(`${baseURL}/appointment/create/${appointmentData.doctorId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.getAuthToken()}` // Get from user session
+                    'Authorization': `Bearer ${authToken}` // Get from user session
                 },
                 body: JSON.stringify(appointmentData)
             });
@@ -191,9 +213,8 @@ class PaymentManager {
     }
 
     getCurrentUserId() {
-        // This should get the current user ID from the authentication system
-        // For now, return a placeholder
-        return sessionStorage.getItem('userId') || 'temp-user-id';
+        // Check both sessionStorage and localStorage for userId, then appointmentDetails.patientId
+        return sessionStorage.getItem('userId') || localStorage.getItem('userId') || this.appointmentDetails.patientId || 'temp-user-id';
     }
 
     getCurrentUserAddress() {
@@ -204,7 +225,7 @@ class PaymentManager {
 
     getAuthToken() {
         // This should get the authentication token from the user session
-        return sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+        return sessionStorage.getItem('authToken') || localStorage.getItem('authToken') || sessionStorage.getItem('token') || localStorage.getItem('token');
     }
 
     clearSessionStorage() {
