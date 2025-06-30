@@ -35,7 +35,7 @@ CREATE TABLE doctors (
     phone_no VARCHAR(20) UNIQUE NOT NULL,
     city VARCHAR(100) NOT NULL,
     department_id UUID REFERENCES departments(id),
-    status BOOLEAN DEFAULT FALSE,
+    status BOOLEAN DEFAULT TRUE,
     image VARCHAR(500),
     is_available BOOLEAN DEFAULT TRUE,
     april_11 TEXT[] DEFAULT ARRAY['11-12', '2-3', '4-5', '7-8'],

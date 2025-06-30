@@ -13,6 +13,7 @@ const { supabase } = require("./config/db");
 const { doctorRouter } = require("./routers/doctor.router");
 const { departmentRouter } = require("./routers/department.router");
 const { appointmentRouter } = require("./routers/appointment.router");
+const { enhancedAppointmentRouter } = require("./routers/enhanced-appointment.router");
 const { dashboardRouter } = require("./routers/adminDash.router");
 // const { authenticate } = require("./middlewares/authenticator.mw");
 
@@ -22,6 +23,7 @@ app.use("/user", userRouter);
 app.use("/department",departmentRouter);
 app.use("/doctor", doctorRouter);
 app.use("/appointment",appointmentRouter);
+app.use("/enhanced-appointment", enhancedAppointmentRouter);
 app.use("/admin", dashboardRouter);
 
 // Test Supabase connection

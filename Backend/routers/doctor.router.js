@@ -12,6 +12,17 @@ doctorRouter.get("/allDoctor", async (req, res) => {
   }
 });
 
+// get only available doctors (status: true and is_available: true)
+doctorRouter.get("/availableDoctors", async (req, res) => {
+  try {
+    const doctors = await DoctorModel.findAvailable();
+    res.status(200).send({ total: doctors.length, doctor: doctors });
+  } catch (error) {
+    console.error("Error getting available doctors:", error);
+    res.status(500).send({ msg: "Error in getting available doctor info.." });
+  }
+});
+
 // Add a Doctor
 doctorRouter.post("/addDoctor", async (req, res) => {
   let {
@@ -36,7 +47,7 @@ doctorRouter.post("/addDoctor", async (req, res) => {
       phone_no: phoneNo,
       city,
       department_id: departmentId,
-      status: status || false,
+      status: status !== undefined ? status : true,
       image,
       is_available: isAvailable !== undefined ? isAvailable : true,
       april_11: ["11-12", "2-3", "4-5", "7-8"],
@@ -45,7 +56,7 @@ doctorRouter.post("/addDoctor", async (req, res) => {
     };
 
     const doctor = await DoctorModel.create(doctorData);
-    res.status(201).send({ msg: "Doctor has been created", doctor });
+    res.status(201).send({ msg: "Doctor has been created and is now available for booking", doctor });
   } catch (error) {
     console.error("Error creating doctor:", error);
     res.status(500).send({ 
@@ -79,6 +90,21 @@ doctorRouter.get("/allDoctor/:id", async (req, res) => {
   } catch (error) {
     console.error("Error getting doctors by department:", error);
     res.status(500).send({ msg: "Error in getting Dr. info.." });
+  }
+});
+
+// AVAILABLE DOCTORS BY DEPARTMENT ID
+doctorRouter.get("/availableDoctors/:id", async (req, res) => {
+  let id = req.params.id;
+  try {
+    const doctors = await DoctorModel.findAvailableByDepartment(id);
+    if (doctors.length === 0) {
+      return res.status(200).send({ msg: "This Department have no available doctors" });
+    }
+    res.status(200).send({ total: doctors.length, doctor: doctors });
+  } catch (error) {
+    console.error("Error getting available doctors by department:", error);
+    res.status(500).send({ msg: "Error in getting available Dr. info.." });
   }
 });
 

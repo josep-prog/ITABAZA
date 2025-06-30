@@ -1,4 +1,4 @@
-import baseURL from "./baseURL.js";
+import { baseURL } from "./baseURL.js";
 
 let formObj=JSON.parse(localStorage.getItem("formObj"));
 let docObj=JSON.parse(localStorage.getItem("docObj"));

@@ -51,12 +51,39 @@ const DoctorModel = {
     return data;
   },
 
+  // Get only available doctors (status: true and is_available: true)
+  async findAvailable() {
+    const { data, error } = await supabase
+      .from(TABLE_NAME)
+      .select('*')
+      .eq('status', true)
+      .eq('is_available', true)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
   // Get doctors by department
   async findByDepartment(departmentId) {
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .select('*')
       .eq('department_id', departmentId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Get available doctors by department
+  async findAvailableByDepartment(departmentId) {
+    const { data, error } = await supabase
+      .from(TABLE_NAME)
+      .select('*')
+      .eq('department_id', departmentId)
+      .eq('status', true)
+      .eq('is_available', true)
       .order('created_at', { ascending: false });
     
     if (error) throw error;

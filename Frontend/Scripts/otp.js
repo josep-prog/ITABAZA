@@ -1,4 +1,4 @@
-import baseURL from './baseURL.js';
+import { baseURL } from './baseURL.js';
 const inputs = document.querySelectorAll("input"),
 button = document.querySelector("button");
 

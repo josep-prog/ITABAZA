@@ -1,4 +1,4 @@
-import baseURL from "./baseURL.js";
+import { baseURL } from "./baseURL.js";
 let selectTag=document.getElementById("select-dept");
 
 selectTag.addEventListener("change", async(e)=>{

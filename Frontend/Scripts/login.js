@@ -1,4 +1,4 @@
-import baseURL from './baseURL.js';
+import { baseURL } from './baseURL.js';
     let form =document.querySelector("form");
 form.addEventListener("submit",async (e)=>{
     e.preventDefault();
@@ -7,7 +7,7 @@ form.addEventListener("submit",async (e)=>{
         password:document.getElementById("exampleFormControlInput2").value
     }
     try {
-        let res=await fetch(baseURL+"user/signin",{
+        let res=await fetch(baseURL+"/user/signin",{
             method:"POST",
             headers:{
                 'Content-type':'application/json'

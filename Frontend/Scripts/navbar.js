@@ -1,4 +1,3 @@
-
 document.querySelector("#navbar").innerHTML = `
 <div id="nav-cont">
     <div id="hamb">
@@ -10,10 +9,10 @@ document.querySelector("#navbar").innerHTML = `
         </div>
     </div>
     <div data-aos="zoom-out" data-aos-duration="1000" id="nav-menu">
-        <li id="book-app">Book an appointment</li>
+        <li id="home-link">Home</li>
         <li id="find-doc">Find Doctors</li>
-        <li>Departments</li>
-        <li>Security & Help</li>
+        <li id="appointment-link">Appointment</li>
+        <li id="security-link">Security & Help</li>
     </div>
     <div data-aos="zoom-out" data-aos-duration="1000" id="nav-user-details">
         <button id="nav-login">Login</button>
@@ -25,8 +24,10 @@ document.querySelector("#navbar").innerHTML = `
 {/* <h5 style="color:#0b76c6">Welcome Faraz<span></span></h5> */}
 
 const logoBtn=document.getElementById("nav-logo");
-const book_app=document.getElementById("book-app");
+const homeLink=document.getElementById("home-link");
+const appointmentLink=document.getElementById("appointment-link");
 const find_doc=document.getElementById("find-doc");
+const securityLink=document.getElementById("security-link");
 
 let loginbtn=document.getElementById("nav-login");
 let signupbtn=document.getElementById("nav-reg");
@@ -55,23 +56,24 @@ signupbtn.addEventListener("click",(e)=>{
     }
 })
 
-
 logoBtn.addEventListener("click",(e)=>{
     window.location.href="./index.html";
 })
 
-
-book_app.addEventListener("click",()=>{
-    window.location.href="./book.appointment.html";
-    // book_app.classList.add("nav-active");
-    // find_doc.classList.remove("nav-active");
+homeLink.addEventListener("click",()=>{
+    window.location.href="./index.html";
 })
 
+appointmentLink.addEventListener("click",()=>{
+    window.location.href="./book.appointment.html";
+})
 
 find_doc.addEventListener("click",()=>{
     window.location.href="./doctors.page.html";
-    // book_app.classList.remove("nav-active");
-    // find_doc.classList.add("nav-active");
+})
+
+securityLink.addEventListener("click",()=>{
+    window.location.href="./security.html";
 })
 
 const hamburger=document.getElementById("hamb");

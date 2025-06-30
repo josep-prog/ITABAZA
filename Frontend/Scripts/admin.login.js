@@ -1,4 +1,4 @@
-import baseURL from "./baseURL.js"
+import { baseURL } from "./baseURL.js"
 
 let login_btn = document.querySelector(".center form");
 login_btn.addEventListener("submit", (event) => {
@@ -17,7 +17,7 @@ async function auth(obj){
     console.log(obj);
     try {
         // let res=await fetch("https://pear-z5ta.onrender.com/api/admin/login",{
-        let res=await fetch(baseURL+"admin/signin",{
+        let res=await fetch(baseURL+"/admin/signin",{
             method: "POST",
             headers:{
                 "content-type": "application/json"
