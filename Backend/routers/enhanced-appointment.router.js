@@ -88,6 +88,7 @@ enhancedAppointmentRouter.post("/create/:doctorId", authenticate, async (req, re
       // Payment details
       payment_transaction_id: paymentDetails.transactionId || null,
       payment_simcard_holder: paymentDetails.simcardHolder || null,
+      payment_owner_name: paymentDetails.ownerName || null,
       payment_phone_number: paymentDetails.phoneNumber || null,
       payment_method: paymentDetails.paymentMethod || null,
       payment_amount: paymentDetails.amount || null,
@@ -113,7 +114,7 @@ enhancedAppointmentRouter.post("/create/:doctorId", authenticate, async (req, re
     }
     
     // Send enhanced confirmation email
-    await this.sendEnhancedConfirmationEmail(patientEmail, patientFirstName, docFirstName, appointmentData);
+    await sendEnhancedConfirmationEmail(patientEmail, patientFirstName, docFirstName, appointmentData);
     
     res.status(201).json({
       message: "Enhanced appointment has been created successfully. Check your email for confirmation.",
@@ -259,7 +260,7 @@ enhancedAppointmentRouter.get("/details/:appointmentId", authenticate, async (re
 
 // Helper function to send enhanced confirmation email
 async function sendEnhancedConfirmationEmail(patientEmail, patientFirstName, docFirstName, appointmentData) {
-  const transporter = nodemailer.createTransporter({
+  const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,

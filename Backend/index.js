@@ -15,6 +15,7 @@ const { departmentRouter } = require("./routers/department.router");
 const { appointmentRouter } = require("./routers/appointment.router");
 const { enhancedAppointmentRouter } = require("./routers/enhanced-appointment.router");
 const { dashboardRouter } = require("./routers/adminDash.router");
+const { audioRouter } = require("./routers/audio.router");
 // const { authenticate } = require("./middlewares/authenticator.mw");
 
 
@@ -25,6 +26,7 @@ app.use("/doctor", doctorRouter);
 app.use("/appointment",appointmentRouter);
 app.use("/enhanced-appointment", enhancedAppointmentRouter);
 app.use("/admin", dashboardRouter);
+app.use("/audio", audioRouter);
 
 // Test Supabase connection
 app.get("/api/health", async (req, res) => {

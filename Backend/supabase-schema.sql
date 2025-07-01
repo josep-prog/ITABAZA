@@ -48,17 +48,33 @@ CREATE TABLE doctors (
 -- Appointments table
 CREATE TABLE appointments (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    patient_id UUID REFERENCES users(id),
-    doctor_id UUID REFERENCES doctors(id),
+    patient_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    doctor_id UUID REFERENCES doctors(id) ON DELETE CASCADE,
     patient_first_name VARCHAR(100) NOT NULL,
     doc_first_name VARCHAR(100) NOT NULL,
     age_of_patient INTEGER NOT NULL,
     gender VARCHAR(10) NOT NULL,
     address TEXT NOT NULL,
-    problem_description TEXT NOT NULL,
-    appointment_date VARCHAR(20) NOT NULL,
-    status BOOLEAN DEFAULT FALSE,
+    problem_description TEXT,
+    appointment_date DATE NOT NULL,
+    slot_time VARCHAR(20) NOT NULL,
+    voice_recording_id UUID,
+    status VARCHAR(50) DEFAULT 'pending',
+    consultation_type VARCHAR(20) DEFAULT 'in-person',
     payment_status BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Voice Recordings table
+CREATE TABLE voice_recordings (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    file_name VARCHAR(500) NOT NULL,
+    file_url VARCHAR(1000) NOT NULL,
+    file_size BIGINT NOT NULL,
+    duration INTEGER,
+    appointment_id UUID REFERENCES appointments(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -165,4 +181,9 @@ INSERT INTO departments (dept_name, about, image) VALUES
 
 -- Insert sample admin
 INSERT INTO admins (name, email, password) VALUES
-('Admin User', 'admin@medistar.com', '$2b$10$hashedpasswordhere'); 
+('Admin User', 'admin@medistar.com', '$2b$10$hashedpasswordhere');
+
+-- Add voice_recording_id foreign key to appointments table
+ALTER TABLE appointments 
+ADD CONSTRAINT fk_appointments_voice_recording 
+FOREIGN KEY (voice_recording_id) REFERENCES voice_recordings(id) ON DELETE SET NULL; 

@@ -98,9 +98,11 @@ class PaymentManager {
         // Validate required fields
         const transactionId = formData.get('transactionId');
         const simcardHolder = formData.get('simcardHolder');
+        const paymentPhoneNumber = formData.get('phoneNumber');
+        const paymentOwnerName = formData.get('ownerName');
         const paymentMethod = formData.get('paymentMethod');
         
-        if (!transactionId || !simcardHolder) {
+        if (!transactionId || !simcardHolder || !paymentPhoneNumber || !paymentOwnerName) {
             alert('Please fill in all required payment fields.');
             return;
         }
@@ -156,7 +158,7 @@ class PaymentManager {
                 paymentDetails: {
                     transactionId: transactionId,
                     simcardHolder: simcardHolder,
-                    phoneNumber: formData.get('phoneNumber') || '',
+                    phoneNumber: paymentPhoneNumber,
                     paymentMethod: paymentMethod,
                     amount: this.paymentAmount,
                     currency: 'RWF'
@@ -188,26 +190,49 @@ class PaymentManager {
 
     async submitAppointment(appointmentData, authToken) {
         try {
-            const response = await fetch(`${baseURL}/appointment/create/${appointmentData.doctorId}`, {
+            // Use enhanced appointment endpoint for better payment handling
+            const response = await fetch(`${baseURL}/enhanced-appointment/create/${appointmentData.doctorId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}` // Get from user session
+                    'Authorization': `Bearer ${authToken}`
                 },
-                body: JSON.stringify(appointmentData)
+                body: JSON.stringify({
+                    ageOfPatient: appointmentData.ageOfPatient,
+                    gender: appointmentData.gender,
+                    address: appointmentData.address,
+                    problemDescription: appointmentData.problemDescription,
+                    appointmentDate: appointmentData.appointmentDate,
+                    appointmentTime: appointmentData.appointmentTime,
+                    consultationType: appointmentData.consultationType,
+                    symptoms: appointmentData.symptoms || [],
+                    medicalHistory: appointmentData.medicalHistory || '',
+                    medications: appointmentData.medications || '',
+                    paymentDetails: {
+                        transactionId: appointmentData.paymentDetails.transactionId,
+                        simcardHolder: appointmentData.paymentDetails.simcardHolder,
+                        ownerName: appointmentData.paymentDetails.ownerName,
+                        phoneNumber: appointmentData.paymentDetails.phoneNumber,
+                        paymentMethod: appointmentData.paymentDetails.paymentMethod,
+                        amount: appointmentData.paymentDetails.amount,
+                        currency: appointmentData.paymentDetails.currency
+                    }
+                })
             });
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('Appointment booked successfully:', result);
+                console.log('Enhanced appointment booked successfully:', result);
                 return true;
             } else {
                 const error = await response.json();
-                console.error('Appointment booking failed:', error);
+                console.error('Enhanced appointment booking failed:', error);
+                alert(`Booking failed: ${error.msg || 'Please check your payment details and try again.'}`);
                 return false;
             }
         } catch (error) {
             console.error('Network error:', error);
+            alert('Network error: Please check your internet connection and try again.');
             return false;
         }
     }

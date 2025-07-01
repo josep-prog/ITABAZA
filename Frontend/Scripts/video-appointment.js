@@ -1,29 +1,101 @@
-import { baseURL, getAuthHeaders } from './baseURL.js';
+import { baseURL, apiRequest, getAuthHeaders } from "./baseURL.js";
 
-class VideoAppointmentManager {
-    constructor() {
-        this.doctors = [];
-        this.filteredDoctors = [];
-        this.doctorsCache = null;
-        this.lastFetchTime = 0;
-        this.cacheDuration = 5 * 60 * 1000; // 5 minutes
-        this.isLoading = false;
-        this.init();
+let doctorsGrid = document.getElementById("doctors-grid");
+let isLoading = false;
+let doctorsCache = null;
+let lastFetchTime = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
+
+let depObj = {
+    1: "Neurology",
+    2: "Dermatology", 
+    3: "Dental",
+    4: "Ayurveda",
+    5: "Gastroenterology",
+    6: "Gynaecology",
+    7: "ENT",
+    8: "General Physician",
+    9: "Orthopedic",
+    10: "Cardiology",
+    // String versions
+    "1": "Neurology",
+    "2": "Dermatology", 
+    "3": "Dental",
+    "4": "Ayurveda",
+    "5": "Gastroenterology",
+    "6": "Gynaecology",
+    "7": "ENT",
+    "8": "General Physician",
+    "9": "Orthopedic",
+    "10": "Cardiology"
+}
+
+// Function to get department name with fallback
+function getDepartmentName(departmentId) {
+    if (!departmentId) return 'Unknown Department';
+    
+    // Handle the specific UUID department ID found in the database
+    if (departmentId === 'dfae69ef-60b3-49eb-8d9c-76e682e1ebd3') {
+        return 'Cardiology'; // Based on the qualifications showing "cardilogy"
     }
-
-    async init() {
-        await this.loadDoctors();
-        this.setupEventListeners();
-        this.renderDoctors();
+    
+    // Try exact match first
+    if (depObj[departmentId]) {
+        return depObj[departmentId];
     }
+    
+    // Try converting to string if it's a number
+    if (typeof departmentId === 'number') {
+        const stringId = departmentId.toString();
+        if (depObj[stringId]) {
+            return depObj[stringId];
+        }
+    }
+    
+    // Try converting to number if it's a string
+    if (typeof departmentId === 'string') {
+        const numId = parseInt(departmentId);
+        if (depObj[numId]) {
+            return depObj[numId];
+        }
+    }
+    
+    return `Unknown Department (ID: ${departmentId})`;
+}
 
-    showLoading() {
-        this.isLoading = true;
-        const container = document.getElementById('doctors-container');
-        container.innerHTML = `
-            <div class="loading" style="text-align: center; padding: 50px;">
+// Function to validate and get safe image URL
+function getSafeImageUrl(imageUrl) {
+    const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9Ijc1IiB5PSI3NSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjY2NjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+RG9jdG9yPC90ZXh0Pgo8L3N2Zz4K';
+    
+    // If no image URL provided, return default
+    if (!imageUrl || imageUrl.trim() === '') {
+        return defaultImage;
+    }
+    
+    // If it's already a data URL, return as is
+    if (imageUrl.startsWith('data:')) {
+        return imageUrl;
+    }
+    
+    // Check for problematic URLs
+    const problematicDomains = ['example.com', 'via.placeholder.com', 'pin.it'];
+    const isProblematic = problematicDomains.some(domain => imageUrl.includes(domain));
+    
+    if (isProblematic) {
+        return defaultImage;
+    }
+    
+    // Return the original URL if it seems valid
+    return imageUrl;
+}
+
+// Loading state management
+function showLoading() {
+    isLoading = true;
+    doctorsGrid.innerHTML = `
+        <div class="loading" style="grid-column: 1 / -1;">
                 <div style="border: 4px solid #f3f3f3; border-top: 4px solid #007bff; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
-                <p style="color: white; font-size: 16px;">Loading doctors...</p>
+            <p>Loading doctors...</p>
             </div>
             <style>
                 @keyframes spin {
@@ -34,53 +106,49 @@ class VideoAppointmentManager {
         `;
     }
 
-    hideLoading() {
-        this.isLoading = false;
-    }
+function hideLoading() {
+    isLoading = false;
+}
 
-    showError(message) {
-        const container = document.getElementById('doctors-container');
-        container.innerHTML = `
-            <div class="no-doctors" style="text-align: center; padding: 50px;">
+function showError(message) {
+    doctorsGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; color: white; padding: 50px;">
                 <div style="color: #dc3545; font-size: 48px; margin-bottom: 20px;">⚠️</div>
                 <h3 style="color: #dc3545; margin-bottom: 10px;">Oops! Something went wrong</h3>
-                <p style="color: white; margin-bottom: 20px;">${message}</p>
-                <button onclick="window.videoAppointmentManager.loadDoctors()" style="background: #0077c0; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px;">
+            <p style="margin-bottom: 20px;">${message}</p>
+            <button onclick="location.reload()" style="background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px;">
                     Try Again
                 </button>
             </div>
         `;
     }
 
-    showNoDoctors(message = "No doctors available for video consultation at the moment.") {
-        const container = document.getElementById('doctors-container');
-        container.innerHTML = `
-            <div class="no-doctors" style="text-align: center; padding: 50px;">
+function showNoDoctors(message = "No doctors available at the moment.") {
+    doctorsGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; color: white; padding: 50px;">
                 <div style="color: #6c757d; font-size: 48px; margin-bottom: 20px;">👨‍⚕️</div>
                 <h3 style="color: #6c757d; margin-bottom: 10px;">No Doctors Found</h3>
-                <p style="color: white; margin-bottom: 20px;">${message}</p>
-                <button onclick="window.videoAppointmentManager.loadDoctors()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px;">
+            <p style="margin-bottom: 20px;">${message}</p>
+            <button onclick="getdata()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px;">
                     Refresh
                 </button>
             </div>
         `;
     }
 
-    async loadDoctors(retryCount = 0) {
-        if (this.isLoading) return;
+// Enhanced data fetching with caching and retry logic
+async function getdata(retryCount = 0) {
+    if (isLoading) return;
         
         const now = Date.now();
         
         // Use cached data if available and not expired
-        if (this.doctorsCache && (now - this.lastFetchTime) < this.cacheDuration) {
-            this.doctors = this.doctorsCache;
-            this.filteredDoctors = [...this.doctors];
-            this.sortDoctorsBySlots();
-            this.renderDoctors();
+    if (doctorsCache && (now - lastFetchTime) < CACHE_DURATION) {
+        renderdata(doctorsCache);
             return;
         }
         
-        this.showLoading();
+    showLoading();
         
         try {
             const response = await fetch(`${baseURL}/doctor/availableDoctors`, {
@@ -96,203 +164,293 @@ class VideoAppointmentManager {
             const data = await response.json();
             
             if (!data.doctor || data.doctor.length === 0) {
-                this.hideLoading();
-                this.showNoDoctors("No available doctors found for video consultation. Please check back later.");
+            hideLoading();
+            showNoDoctors("No available doctors found. Please check back later.");
                 return;
             }
             
             // Cache the successful response
-            this.doctors = data.doctor;
-            this.doctorsCache = data.doctor;
-            this.lastFetchTime = now;
-            this.filteredDoctors = [...this.doctors];
-            this.sortDoctorsBySlots();
-            
-            this.hideLoading();
-            this.renderDoctors();
+        doctorsCache = data.doctor;
+        lastFetchTime = now;
+        
+        hideLoading();
+        renderdata(data.doctor);
             
         } catch (error) {
             console.error('Error fetching doctors:', error);
-            this.hideLoading();
+        hideLoading();
             
             // Retry logic for network errors
             if (retryCount < 3 && (error.name === 'TypeError' || error.name === 'AbortError')) {
                 console.log(`Retrying... Attempt ${retryCount + 1}`);
-                setTimeout(() => this.loadDoctors(retryCount + 1), 2000 * (retryCount + 1));
-                return;
-            }
-            
-            this.showError(`Failed to load doctors: ${error.message}. Please check your internet connection and try again.`);
-        }
-    }
-
-    sortDoctorsBySlots() {
-        this.filteredDoctors.sort((a, b) => {
-            const aSlots = this.getAvailableSlotsCount(a);
-            const bSlots = this.getAvailableSlotsCount(b);
-            return bSlots - aSlots; // Sort by most available slots first
-        });
-    }
-
-    getAvailableSlotsCount(doctor) {
-        // Count available slots for the next few days
-        let totalSlots = 0;
-        const today = new Date();
-        
-        for (let i = 0; i < 7; i++) {
-            const date = new Date(today);
-            date.setDate(today.getDate() + i);
-            const dateKey = this.getDateKey(date);
-            
-            if (doctor[dateKey] && Array.isArray(doctor[dateKey])) {
-                totalSlots += doctor[dateKey].length;
-            }
-        }
-        
-        return totalSlots;
-    }
-
-    getDateKey(date) {
-        const months = ['january', 'february', 'march', 'april', 'may', 'june', 
-                       'july', 'august', 'september', 'october', 'november', 'december'];
-        const month = months[date.getMonth()];
-        const day = date.getDate();
-        return `${month}_${day}`;
-    }
-
-    setupEventListeners() {
-        const departmentFilter = document.getElementById('department-filter');
-        const searchFilter = document.getElementById('search-filter');
-        const sortFilter = document.getElementById('sort-filter');
-
-        if (departmentFilter) departmentFilter.addEventListener('change', () => this.applyFilters());
-        if (searchFilter) searchFilter.addEventListener('input', () => this.applyFilters());
-        if (sortFilter) sortFilter.addEventListener('change', () => this.applyFilters());
-    }
-
-    applyFilters() {
-        const departmentFilter = document.getElementById('department-filter')?.value || '';
-        const searchFilter = document.getElementById('search-filter')?.value.toLowerCase() || '';
-        const sortFilter = document.getElementById('sort-filter')?.value || 'slots';
-
-        this.filteredDoctors = this.doctors.filter(doctor => {
-            const matchesDepartment = !departmentFilter || doctor.department_id == departmentFilter;
-            const matchesSearch = !searchFilter || 
-                doctor.doctor_name.toLowerCase().includes(searchFilter) ||
-                doctor.qualifications.toLowerCase().includes(searchFilter);
-            
-            return matchesDepartment && matchesSearch;
-        });
-
-        this.sortDoctors(sortFilter);
-        this.renderDoctors();
-    }
-
-    sortDoctors(sortBy) {
-        switch (sortBy) {
-            case 'slots':
-                this.sortDoctorsBySlots();
-                break;
-            case 'name':
-                this.filteredDoctors.sort((a, b) => a.doctor_name.localeCompare(b.doctor_name));
-                break;
-            case 'experience':
-                this.filteredDoctors.sort((a, b) => {
-                    const aExp = parseInt(a.experience.match(/\d+/)?.[0] || 0);
-                    const bExp = parseInt(b.experience.match(/\d+/)?.[0] || 0);
-                    return bExp - aExp;
-                });
-                break;
-        }
-    }
-
-    renderDoctors() {
-        const container = document.getElementById('doctors-container');
-        
-        if (!container) {
-            console.error('Doctors container not found');
+            setTimeout(() => getdata(retryCount + 1), 2000 * (retryCount + 1));
             return;
         }
         
-        if (this.filteredDoctors.length === 0) {
-            container.innerHTML = '<div class="no-doctors">No doctors found matching your criteria.</div>';
-            return;
-        }
+        showError(`Failed to load doctors: ${error.message}. Please check your internet connection and try again.`);
+    }
+}
 
-        const doctorsHTML = this.filteredDoctors.map(doctor => this.createDoctorCard(doctor)).join('');
-        container.innerHTML = `<div class="doctors-grid">${doctorsHTML}</div>`;
+// Enhanced rendering with better error handling
+function renderdata(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) {
+        showNoDoctors();
+        return;
     }
 
-    createDoctorCard(doctor) {
-        if (!doctor || !doctor.doctor_name) {
-            console.warn('Invalid doctor data:', doctor);
+    doctorsGrid.innerHTML = arr.map((elem, index) => {
+        if (!elem || !elem.doctor_name) {
+            console.warn('Invalid doctor data:', elem);
             return '';
         }
-        
-        const availableSlots = this.getAvailableSlotsCount(doctor);
-        const isAvailable = doctor.status && doctor.is_available;
+        const departmentName = getDepartmentName(elem.department_id);
+        const isAvailable = elem.status && elem.is_available;
         
         return `
-            <div class="doctor-card" onclick="window.videoAppointmentManager.selectDoctor('${doctor.id || doctor._id}')" style="opacity: ${isAvailable ? '1' : '0.7'}">
+            <div class="doctor-card" style="opacity: ${isAvailable ? '1' : '0.7'}">
                 <div class="doctor-header">
                     <div class="doctor-avatar">
-                        <i class="fas fa-video"></i>
+                        <i class="fas fa-user-md"></i>
                     </div>
                     <div class="doctor-info">
-                        <h3>${doctor.doctor_name}</h3>
-                        <p>${doctor.qualifications || 'Not specified'}</p>
+                        <h3>${elem.doctor_name}</h3>
+                        <p>${departmentName}</p>
                     </div>
                 </div>
                 
                 <div class="doctor-details">
                     <div class="detail-item">
                         <span class="detail-label">Experience:</span>
-                        <span class="detail-value">${doctor.experience || 'Not specified'}</span>
+                        <span class="detail-value">${elem.experience || 'Not specified'} years</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Location:</span>
-                        <span class="detail-value">${doctor.city || 'Not specified'}</span>
+                        <span class="detail-label">Qualification:</span>
+                        <span class="detail-value">${elem.qualifications || 'Not specified'}</span>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Phone:</span>
-                        <span class="detail-value">${doctor.phone_no || 'Not specified'}</span>
+                        <span class="detail-label">Consultation Fee:</span>
+                        <span class="detail-value">Rs. 1,000</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value" style="color: ${isAvailable ? '#28a745' : '#dc3545'}">
+                            ${isAvailable ? 'Available' : 'Not Available'}
+                        </span>
                     </div>
                 </div>
                 
                 <div class="slots-info">
-                    <div class="slots-title">Available Slots (Next 7 days)</div>
-                    <div class="slots-count">${availableSlots}</div>
+                    <div class="slots-title">Video Call Availability</div>
+                    <div class="slots-count">${isAvailable ? 'Available Now' : 'Not Available'}</div>
                 </div>
                 
-                <button class="book-button" ${!isAvailable ? 'disabled' : ''}>
-                    ${isAvailable ? 'Book Video Consultation' : 'Not Available'}
+                <button class="book-button" ${!isAvailable ? 'disabled style="opacity:0.5;pointer-events:none;"' : ''} data-doctor-id="${elem._id || elem.id}">
+                    <i class="fas fa-video me-2"></i>Book Video Call
                 </button>
                 
-                ${!isAvailable ? '<p style="color: #ffc107; font-size: 12px; text-align: center; margin-top: 10px;">This doctor is not accepting video consultations at the moment</p>' : ''}
+                <input type="hidden" value="${elem.doctor_name}">
+                <input type="hidden" value="${departmentName}">
+                <input type="hidden" value="${elem.experience || 'Not specified'}">
+                <input type="hidden" value="${elem.qualifications || 'Not specified'}">
+                <input type="hidden" value="${getSafeImageUrl(elem.image)}">
             </div>
         `;
-    }
+    }).join("");
 
-    selectDoctor(doctorId) {
-        // Store doctor selection in sessionStorage
-        const doctor = this.doctors.find(d => (d.id === doctorId || d._id === doctorId));
-        if (doctor) {
-            if (!doctor.status || !doctor.is_available) {
-                alert('This doctor is not available for video consultations at the moment.');
+    // Attach booking button listeners
+    let bookBtns = document.querySelectorAll('.book-button');
+    bookBtns.forEach((btn) => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            // Check if user is logged in
+            if (!localStorage.getItem("token")) {
+                swal("", "Please Login!", "warning").then(function() {
+                    window.location.href = "./login.html";
+                });
                 return;
             }
             
-            sessionStorage.setItem('selectedDoctor', JSON.stringify(doctor));
-            sessionStorage.setItem('consultationType', 'video-call');
-            
-            // Navigate to slot selection page
-            window.location.href = 'slot-selection.html';
-        } else {
-            console.error('Doctor not found:', doctorId);
-            alert('Doctor information not found. Please try again.');
-        }
-    }
+            try {
+                const doctorCard = btn.closest('.doctor-card');
+                const doctorInfo = {
+                    img: doctorCard.querySelector('input[type="hidden"]:nth-child(5)').value,
+                    name: doctorCard.querySelector('input[type="hidden"]:nth-child(1)').value,
+                    dept: doctorCard.querySelector('input[type="hidden"]:nth-child(2)').value,
+                    exp: doctorCard.querySelector('input[type="hidden"]:nth-child(3)').value + ' years',
+                    qual: doctorCard.querySelector('input[type="hidden"]:nth-child(4)').value,
+                    docID: btn.getAttribute('data-doctor-id'),
+                    appointmentType: 'video'
+                };
+                
+                // Store doctor info and redirect to patient details
+                localStorage.setItem("docObj", JSON.stringify(doctorInfo));
+                localStorage.setItem("appointmentType", "video");
+                window.location.href = "./patient_details.html";
+                
+            } catch (error) {
+                console.error('Error processing booking:', error);
+                swal("Error", "Failed to process booking. Please try again.", "error");
+            }
+        });
+    });
 }
 
-// Initialize the video appointment manager
-window.videoAppointmentManager = new VideoAppointmentManager(); 
+// Enhanced search with debouncing
+let searchTimeout;
+let searchInput = document.getElementById('search-doctor');
+searchInput.addEventListener("input", async (e) => {
+    clearTimeout(searchTimeout);
+    const searchVal = searchInput.value.trim();
+    
+    if (searchVal.length === 0) {
+        getdata();
+        return;
+    }
+    
+    // Debounce search requests
+    searchTimeout = setTimeout(async () => {
+        try {
+            showLoading();
+            const response = await fetch(`${baseURL}/doctor/search?q=${encodeURIComponent(searchVal)}`, {
+                headers: getAuthHeaders(),
+                signal: AbortSignal.timeout(5000)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            hideLoading();
+            
+            if (!data || data.length === 0) {
+                showNoDoctors(`No doctors found matching "${searchVal}"`);
+            } else {
+                renderdata(data);
+            }
+            
+        } catch (error) {
+            console.error('Search error:', error);
+            hideLoading();
+            showError(`Search failed: ${error.message}`);
+        }
+    }, 300);
+});
+
+// Enhanced department filtering
+let departmentFilter = document.getElementById('filter-department');
+departmentFilter.addEventListener("change", async (e) => {
+    const filterValue = departmentFilter.value;
+    
+    if (!filterValue) {
+        getdata();
+        return;
+    }
+    
+    try {
+        showLoading();
+        const response = await fetch(`${baseURL}/doctor/availableDoctors/${filterValue}`, {
+            headers: getAuthHeaders(),
+            signal: AbortSignal.timeout(5000)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        hideLoading();
+        
+        if (data.msg) {
+            swal("", `${data.msg}`, "info").then(function() {
+                getdata();
+            });
+        } else {
+            renderdata(data.doctor);
+        }
+        
+    } catch (error) {
+        console.error('Filter error:', error);
+        hideLoading();
+        showError(`Filter failed: ${error.message}`);
+    }
+});
+
+// Availability filter
+let availabilityFilter = document.getElementById('filter-availability');
+availabilityFilter.addEventListener("change", (e) => {
+    const filterValue = availabilityFilter.value;
+    
+    if (!filterValue) {
+        getdata();
+        return;
+    }
+    
+    // Filter the cached data based on availability
+    if (doctorsCache) {
+        let filteredDoctors = doctorsCache;
+        
+        if (filterValue === 'available') {
+            filteredDoctors = doctorsCache.filter(doctor => 
+                doctor.status && doctor.is_available
+            );
+        } else if (filterValue === 'today') {
+            filteredDoctors = doctorsCache.filter(doctor => 
+                doctor.status && doctor.is_available
+            );
+        }
+        
+        if (filteredDoctors.length === 0) {
+            showNoDoctors(`No doctors available with the selected criteria.`);
+        } else {
+            renderdata(filteredDoctors);
+        }
+    }
+});
+
+// Initialize on page load
+window.addEventListener("load", async (e) => {
+    let deptID = localStorage.getItem("deptID");
+    if (deptID) {
+        try {
+            showLoading();
+            const response = await fetch(`${baseURL}/doctor/availableDoctors/${deptID}`, {
+                headers: getAuthHeaders(),
+                signal: AbortSignal.timeout(10000)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            hideLoading();
+            
+            if (data.msg) {
+                swal("", `${data.msg}`, "info").then(function() {
+                    getdata();
+                });
+            } else {
+                renderdata(data.doctor);
+            }
+            
+            localStorage.removeItem("deptID");
+        } catch (err) {
+            console.error('Department filter error:', err);
+            hideLoading();
+            showError(`Failed to load doctors for department: ${err.message}`);
+        }
+    } else {
+        getdata();
+    }
+});
+
+// Add refresh functionality
+window.addEventListener('focus', () => {
+    // Refresh data when user returns to the tab (if cache is expired)
+    const now = Date.now();
+    if (!doctorsCache || (now - lastFetchTime) >= CACHE_DURATION) {
+        getdata();
+    }
+}); 

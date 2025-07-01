@@ -13,7 +13,13 @@ const AppointmentModel = {
       .select();
     
     if (error) throw error;
-    return data[0];
+    
+    // Handle both 'id' and 'appointment_id' field names
+    const appointment = data[0];
+    if (appointment && appointment.appointment_id && !appointment.id) {
+      appointment.id = appointment.appointment_id;
+    }
+    return appointment;
   },
 
   // Find appointment by ID
@@ -21,7 +27,7 @@ const AppointmentModel = {
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .select('*')
-      .eq('id', id)
+      .eq('appointment_id', id)
       .single();
     
     if (error && error.code !== 'PGRST116') throw error;
@@ -92,7 +98,7 @@ const AppointmentModel = {
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .update(updates)
-      .eq('id', id)
+      .eq('appointment_id', id)
       .select();
     
     if (error) throw error;
@@ -104,7 +110,7 @@ const AppointmentModel = {
     const { error } = await supabase
       .from(TABLE_NAME)
       .delete()
-      .eq('id', id);
+      .eq('appointment_id', id);
     
     if (error) throw error;
     return true;
@@ -123,6 +129,63 @@ const AppointmentModel = {
     const paid = data.filter(app => app.payment_status).length;
     
     return { total, pending, paid };
+  },
+
+  // Get appointments by consultation type and patient
+  async findByTypeAndPatient(consultationType, patientId) {
+    const { data, error } = await supabase
+      .from(TABLE_NAME)
+      .select('*')
+      .eq('consultation_type', consultationType)
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Get appointments by doctor and date
+  async findByDoctorAndDate(doctorId, date) {
+    const { data, error } = await supabase
+      .from(TABLE_NAME)
+      .select('*')
+      .eq('doctor_id', doctorId)
+      .eq('appointment_date', date)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Get comprehensive appointment statistics
+  async getStatistics() {
+    const { data, error } = await supabase
+      .from(TABLE_NAME)
+      .select('status, payment_status, consultation_type, payment_amount');
+    
+    if (error) throw error;
+    
+    const total = data.length;
+    const pending = data.filter(app => !app.status).length;
+    const completed = data.filter(app => app.status).length;
+    const paid = data.filter(app => app.payment_status).length;
+    const unpaid = data.filter(app => !app.payment_status).length;
+    const videoCalls = data.filter(app => app.consultation_type === 'video-call').length;
+    const inPerson = data.filter(app => app.consultation_type === 'in-person').length;
+    const totalRevenue = data
+      .filter(app => app.payment_status && app.payment_amount)
+      .reduce((sum, app) => sum + parseFloat(app.payment_amount || 0), 0);
+    
+    return {
+      total,
+      pending,
+      completed,
+      paid,
+      unpaid,
+      videoCalls,
+      inPerson,
+      totalRevenue
+    };
   }
 };
 

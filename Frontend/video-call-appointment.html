@@ -17,7 +17,7 @@
     <style>
         .video-appointment-container {
             min-height: 80vh;
-            padding: 80px 20px 50px 20px;
+            padding: 50px 20px;
             background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
         }
         
@@ -36,6 +36,66 @@
         .page-subtitle {
             font-size: 1.2rem;
             opacity: 0.9;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            padding: 0 20px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 0 15px;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .step.active .step-number {
+            background: #007bff;
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background: #28a745;
+            color: white;
+        }
+        
+        .step-text {
+            font-weight: 500;
+            color: #6c757d;
+        }
+        
+        .step.active .step-text {
+            color: #007bff;
+        }
+        
+        .step.completed .step-text {
+            color: #28a745;
+        }
+        
+        .step-connector {
+            width: 60px;
+            height: 2px;
+            background: #e9ecef;
+            margin: 0 10px;
+        }
+        
+        .step.completed + .step-connector {
+            background: #28a745;
         }
         
         .filters-section {
@@ -200,33 +260,28 @@
             padding: 50px;
         }
         
-        .no-doctors {
-            text-align: center;
-            color: white;
-            font-size: 18px;
-            padding: 50px;
-        }
-        
         @media (max-width: 768px) {
-            .video-appointment-container {
-                padding: 30px 15px;
+            .step-indicator {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .step-connector {
+                width: 2px;
+                height: 20px;
+                margin: 5px 0;
             }
             
             .page-title {
                 font-size: 2rem;
             }
             
-            .filter-row {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .filter-group {
-                min-width: 100%;
-            }
-            
             .doctors-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .filter-row {
+                flex-direction: column;
             }
         }
     </style>
@@ -247,15 +302,44 @@
     <div class="video-appointment-container">
         <div class="container">
             <div class="page-header">
-                <h1 class="page-title">Video Call Consultation</h1>
-                <p class="page-subtitle">Select a doctor for your video consultation</p>
+                <h1 class="page-title">Book Video Call Appointment</h1>
+                <p class="page-subtitle">Connect with our doctors from the comfort of your home</p>
             </div>
             
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step active">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Choose Doctor</div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Patient Details</div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Problem Description</div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-text">Payment</div>
+                </div>
+            </div>
+            
+            <!-- Filters Section -->
             <div class="filters-section">
+                <h3 class="mb-4">Find Available Doctors</h3>
                 <div class="filter-row">
                     <div class="filter-group">
-                        <label for="department-filter">Department</label>
-                        <select id="department-filter">
+                        <label for="search-doctor">Search by Name</label>
+                        <input type="text" id="search-doctor" placeholder="Enter doctor name...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-department">Department</label>
+                        <select id="filter-department">
                             <option value="">All Departments</option>
                             <option value="1">Neurology</option>
                             <option value="2">Dermatology</option>
@@ -270,22 +354,19 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label for="search-filter">Search Doctor</label>
-                        <input type="text" id="search-filter" placeholder="Enter doctor name...">
-                    </div>
-                    <div class="filter-group">
-                        <label for="sort-filter">Sort By</label>
-                        <select id="sort-filter">
-                            <option value="slots">Most Available Slots</option>
-                            <option value="name">Name A-Z</option>
-                            <option value="experience">Experience</option>
+                        <label for="filter-availability">Availability</label>
+                        <select id="filter-availability">
+                            <option value="">All</option>
+                            <option value="available">Available Now</option>
+                            <option value="today">Available Today</option>
                         </select>
                     </div>
                 </div>
             </div>
             
-            <div id="doctors-container">
-                <div class="loading">Loading doctors...</div>
+            <!-- Doctors Grid -->
+            <div class="doctors-grid" id="doctors-grid">
+                <!-- Will be populated by JavaScript -->
             </div>
         </div>
     </div>
@@ -302,5 +383,17 @@
 <script type="module" src="./Scripts/navbar.js"></script>
 <script type="module" src="./Scripts/footer.js"></script>
 <script type="module" src="./Scripts/video-appointment.js"></script>
+<script>
+// Patch the booking button logic to skip slot-selection.html and go directly to patient_details.html
+window.addEventListener('DOMContentLoaded', function() {
+    document.body.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('book-button')) {
+            setTimeout(function() {
+                window.location.href = 'patient_details.html';
+            }, 10);
+        }
+    }, true);
+});
+</script>
 
 </html> 

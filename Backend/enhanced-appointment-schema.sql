@@ -48,6 +48,7 @@ ALTER TABLE appointments ADD COLUMN IF NOT EXISTS medical_history TEXT;
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS medications TEXT;
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_transaction_id VARCHAR(100);
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_simcard_holder VARCHAR(100);
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_owner_name VARCHAR(100);
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_phone_number VARCHAR(20);
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20);
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS payment_amount DECIMAL(10,2);

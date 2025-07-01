@@ -93,7 +93,7 @@ appointmentRouter.post("/create/:doctorId", authenticate, async (req, res) => {
     let patientFirstName = patientName.first_name;
     console.log("Appointment Create Console: ", docFirstName, patientFirstName, patientEmail);
     
-    let { ageOfPatient, gender, address, problemDescription, appointmentDate } = req.body;
+    let { ageOfPatient, gender, address, problemDescription, appointmentDate, slotTime, paymentDetails = {} } = req.body;
     console.log(req.body);
     
     if (!docName.is_available) {
@@ -110,8 +110,17 @@ appointmentRouter.post("/create/:doctorId", authenticate, async (req, res) => {
       address,
       problem_description: problemDescription,
       appointment_date: appointmentDate,
+      slot_time: slotTime,
       status: false,
-      payment_status: false
+      payment_status: Boolean(paymentDetails.transactionId),
+      // Payment details for Rwanda mobile money
+      payment_transaction_id: paymentDetails.transactionId || null,
+      payment_simcard_holder: paymentDetails.simcardHolder || null,
+      payment_owner_name: paymentDetails.ownerName || null,
+      payment_phone_number: paymentDetails.phoneNumber || null,
+      payment_method: paymentDetails.paymentMethod || null,
+      payment_amount: paymentDetails.amount || null,
+      payment_currency: paymentDetails.currency || 'RWF'
     };
     
     const createdAppointment = await AppointmentModel.create(appointmentData);

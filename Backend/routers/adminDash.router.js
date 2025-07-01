@@ -169,6 +169,92 @@ adminDashRouter.get("/appointmentStats", async (req, res) => {
   }
 });
 
+// Get all appointments with complete payment details (Admin only)
+adminDashRouter.get("/appointments", async (req, res) => {
+  try {
+    const appointments = await AppointmentModel.findAll();
+    
+    // Enhance appointments with doctor and patient details
+    const enhancedAppointments = [];
+    
+    for (const appointment of appointments) {
+      try {
+        const doctor = await DoctorModel.findById(appointment.doctor_id);
+        const patient = await UserModel.findById(appointment.patient_id);
+        
+        const enhancedAppointment = {
+          ...appointment,
+          doctor_details: doctor ? {
+            name: doctor.doctor_name,
+            qualifications: doctor.qualifications,
+            experience: doctor.experience,
+            phone: doctor.phone_no,
+            city: doctor.city,
+            department_id: doctor.department_id
+          } : null,
+          patient_details: patient ? {
+            name: `${patient.first_name} ${patient.last_name}`,
+            email: patient.email,
+            mobile: patient.mobile
+          } : null,
+          payment_details: {
+            transaction_id: appointment.payment_transaction_id,
+            simcard_holder: appointment.payment_simcard_holder,
+            owner_name: appointment.payment_owner_name,
+            phone_number: appointment.payment_phone_number,
+            method: appointment.payment_method,
+            amount: appointment.payment_amount,
+            currency: appointment.payment_currency,
+            status: appointment.payment_status
+          }
+        };
+        
+        enhancedAppointments.push(enhancedAppointment);
+      } catch (detailError) {
+        console.error(`Error getting details for appointment ${appointment.id}:`, detailError);
+        enhancedAppointments.push(appointment); // Add without enhancement if details fail
+      }
+    }
+    
+    // Calculate additional statistics
+    const totalRevenue = appointments
+      .filter(app => app.payment_status && app.payment_amount)
+      .reduce((sum, app) => sum + parseFloat(app.payment_amount || 0), 0);
+    
+    const paymentMethodStats = appointments
+      .filter(app => app.payment_method)
+      .reduce((acc, app) => {
+        acc[app.payment_method] = (acc[app.payment_method] || 0) + 1;
+        return acc;
+      }, {});
+    
+    const consultationTypeStats = appointments
+      .reduce((acc, app) => {
+        const type = app.consultation_type || 'in-person';
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      }, {});
+    
+    res.status(200).json({
+      message: "All appointments with payment details retrieved successfully",
+      appointments: enhancedAppointments,
+      statistics: {
+        total_appointments: appointments.length,
+        pending_appointments: appointments.filter(app => app.status === false).length,
+        completed_appointments: appointments.filter(app => app.status === true).length,
+        paid_appointments: appointments.filter(app => app.payment_status === true).length,
+        unpaid_appointments: appointments.filter(app => app.payment_status === false).length,
+        total_revenue: totalRevenue,
+        payment_method_stats: paymentMethodStats,
+        consultation_type_stats: consultationTypeStats
+      }
+    });
+  } catch (error) {
+    console.error("Error getting appointments with payment details:", error);
+    res.status(500).send({ msg: "Error getting appointments with payment details", error: error.message });
+  }
+});
+
 // Real-time dashboard updates
 adminDashRouter.get("/realtime", async (req, res) => {
   try {

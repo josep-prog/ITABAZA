@@ -157,16 +157,17 @@
                         <h2 class="card-title">In-Person Consultation</h2>
                     </div>
                     <p class="card-description">
-                        Visit our hospital for a face-to-face consultation with our experienced doctors. 
-                        Get comprehensive physical examination and personalized care.
+                        Book an in-person appointment by selecting any available doctor. You can filter or search for doctors, then proceed to describe your problem and make payment.
                     </p>
                     <ul class="card-features">
                         <li>Physical examination and tests</li>
                         <li>Direct interaction with doctor</li>
                         <li>Immediate diagnosis and treatment</li>
-                        <li>Filter by location and specialty</li>
                         <li>Secure and hygienic environment</li>
                     </ul>
+                    <div style="text-align:center; margin-top:20px;">
+                        <a href="in-person-appointment.html" class="btn btn-success" style="padding:10px 30px; font-size:1.1rem; font-weight:600;">Start Booking</a>
+                    </div>
                 </div>
                 
                 <!-- Video Call Appointment Card -->
@@ -211,14 +212,16 @@
             function isLoggedIn() {
                 return !!(localStorage.getItem('token'));
             }
-            document.getElementById('inPersonCard').addEventListener('click', function() {
-                if (!isLoggedIn()) {
-                    alert('Please log in to book an appointment.');
-                    window.location.href = 'login.html';
-                } else {
-                    window.location.href = 'in-person-appointment.html';
-                }
-            });
+            const startBookingBtn = document.querySelector('#inPersonCard a.btn-success');
+            if (startBookingBtn) {
+                startBookingBtn.addEventListener('click', function(e) {
+                    if (!isLoggedIn()) {
+                        e.preventDefault();
+                        alert('Please log in to book an appointment.');
+                        window.location.href = 'login.html';
+                    }
+                });
+            }
             document.getElementById('videoCallCard').addEventListener('click', function() {
                 if (!isLoggedIn()) {
                     alert('Please log in to book an appointment.');
