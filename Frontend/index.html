@@ -13,6 +13,22 @@
     <link rel="stylesheet" href="./Styles/responsive.css">
     <link rel="stylesheet" href="./css/all.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="manifest" href="manifest.json">
+    <style>
+    #installBtn {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #00796B;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
@@ -211,6 +227,48 @@
     <script>
       AOS.init();
     </script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service worker registered'))
+      .catch(err => console.log('Service worker not registered', err));
+  }
+</script>
+<h1>Welcome to Itabaza</h1>
+<p>Book and manage appointments with ease.</p>
+<button id="installBtn">Install Itabaza</button>
+	<script>
+let deferredPrompt;
+const installBtn = document.getElementById('installBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = 'block';
+
+  installBtn.addEventListener('click', () => {
+    installBtn.style.display = 'none';
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choice) => {
+      if (choice.outcome === 'accepted') {
+        console.log('✅ User accepted install');
+      } else {
+        console.log('❌ User dismissed install');
+      }
+      deferredPrompt = null;
+    });
+  });
+});
+
+
+  // Register the service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then((reg) => console.log('Service Worker registered'))
+      .catch((err) => console.log('Service Worker registration failed:', err));
+  }
+</script>
+
 </body>
 
 <script type="module" src="./Scripts/navbar.js"></script>
