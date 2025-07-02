@@ -39,6 +39,54 @@ app.get("/api/health", async (req, res) => {
   }
 });
 
+// Test Supabase connectivity and insert
+app.get('/test-supabase', async (req, res) => {
+  try {
+    // Fetch a real user ID
+    const { data: users, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .limit(1);
+
+    if (userError || !users || users.length === 0) {
+      return res.status(500).json({ error: "No users found in users table" });
+    }
+
+    // Fetch a real doctor ID
+    const { data: doctors, error: doctorError } = await supabase
+      .from('doctors')
+      .select('id')
+      .limit(1);
+
+    if (doctorError || !doctors || doctors.length === 0) {
+      return res.status(500).json({ error: "No doctors found in doctors table" });
+    }
+
+    const testUserId = users[0].id;
+    const testDoctorId = doctors[0].id;
+
+    const { data, error } = await supabase
+      .from('appointments')
+      .insert([{
+        patient_id: testUserId,
+        doctor_id: testDoctorId,
+        patient_first_name: 'Test',
+        doc_first_name: 'Test',
+        age_of_patient: 1,
+        gender: 'M',
+        address: 'Test',
+        problem_description: 'Test',
+        appointment_date: '2024-01-01',
+        status: false
+      }])
+      .select();
+    if (error) return res.status(500).json({ error });
+    res.json({ data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(process.env.PORT || 8080, async () => {
   try {
     console.log("Connected to Supabase");

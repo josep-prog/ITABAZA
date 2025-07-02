@@ -63,7 +63,8 @@ let fourth=document.querySelector("#fourth").value;
     //    password:p.password,
     //    otp:jhola
     // };
-    let register_request = await fetch(baseURL+"user/signup", {
+    console.log('baseURL:', baseURL); // Debug: log the baseURL value
+    let register_request = await fetch(baseURL+"/user/signup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
