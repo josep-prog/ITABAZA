@@ -14,21 +14,6 @@
     <link rel="stylesheet" href="./css/all.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <link rel="manifest" href="manifest.json">
-    <style>
-    #installBtn {
-      display: none;
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: #00796B;
-      color: white;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
 </head>
 
 <body>
@@ -36,6 +21,23 @@
     <section id="navbar">
         <!-- Navbar Imported -->
     </section> 
+<!-- 📲 Install App Button -->
+<button id="installBtn" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 18px;
+  background-color: #007bff;
+  color: blue;
+  border: 1 solid;
+  border-radius: 8px;
+  font-size: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  display: none;
+  z-index: 9999;
+  cursor: pointer;">
+  📲 Install Itabaza App
+</button>
 
     <section class="land-sections">
         <div data-aos="zoom-in" data-aos-duration="800" id="land-video">
@@ -236,7 +238,8 @@
 </script>
 <h1>Welcome to Itabaza</h1>
 <p>Book and manage appointments with ease.</p>
-<button id="installBtn">Install Itabaza</button>
+<!-- Install App Button -->
+
 	<script>
 let deferredPrompt;
 const installBtn = document.getElementById('installBtn');
