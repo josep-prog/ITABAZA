@@ -230,3 +230,17 @@ admin@gmail.com
 admin
 ``` -->
 
+## 📱 Download ITABAZA App
+
+You can download and install the latest Android version of the ITABAZA app here:
+
+[⬇️ Download APK](https://github.com/Esther447/ITABAZA/releases/download/v1.0.0/app-release.apk)
+
+---
+
+### ✅ Features:
+- Appointment management
+- Document access
+- Voice recording feature
+- Doctor visibility fixes
+- Supabase integration
