@@ -61,6 +61,14 @@ userRouter.post("/signup", async (req, res) => {
       });
     }
 
+    // Check if mobile already exists
+    const existingMobile = await UserModel.findByMobile(mobile);
+    if (existingMobile) {
+      return res.status(500).send({
+        msg: "Mobile number already registered",
+      });
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 5);
     
@@ -78,6 +86,75 @@ userRouter.post("/signup", async (req, res) => {
     res.status(201).send({ msg: "Signup Successful", user: { id: user.id, email: user.email } });
   } catch (error) {
     console.error("Signup error:", error);
+    res.status(500).send({
+      msg: "Error during signup",
+      error: error.message
+    });
+  }
+});
+
+// Direct signup without OTP (alternative endpoint)
+userRouter.post("/signup-direct", async (req, res) => {
+  let { first_name, last_name, email, mobile, password } = req.body;
+  
+  try {
+    // Validate required fields
+    if (!first_name || !last_name || !email || !mobile || !password) {
+      return res.status(400).send({
+        msg: "All fields are required"
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await UserModel.findByEmail(email);
+    if (existingUser) {
+      return res.status(400).send({
+        msg: "User already registered with this email",
+      });
+    }
+
+    // Check if mobile already exists
+    const existingMobile = await UserModel.findByMobile(mobile);
+    if (existingMobile) {
+      return res.status(400).send({
+        msg: "Mobile number already registered",
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 5);
+    
+    // Create user data
+    const userData = {
+      first_name,
+      last_name,
+      email,
+      mobile,
+      password: hashedPassword,
+    };
+
+    // Create user in Supabase
+    const user = await UserModel.create(userData);
+    
+    // Generate JWT token for immediate login
+    const token = jwt.sign(
+      { userID: user.id, email: user.email },
+      process.env.JWT_SECRET || "masai"
+    );
+    
+    res.status(201).send({ 
+      msg: "Signup Successful", 
+      user: { 
+        id: user.id, 
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        mobile: user.mobile
+      },
+      token
+    });
+  } catch (error) {
+    console.error("Direct signup error:", error);
     res.status(500).send({
       msg: "Error during signup",
       error: error.message
