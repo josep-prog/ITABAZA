@@ -52,10 +52,20 @@ userRouter.post("/emailVerify", async (req, res) => {
 userRouter.post("/signup", async (req, res) => {
   let { first_name, last_name, email, mobile, password } = req.body;
   
+  // Debug logging
+  console.log("🔍 OTP Signup attempt:", {
+    first_name,
+    last_name,
+    email,
+    mobile,
+    hasPassword: !!password
+  });
+  
   try {
     // Check if user already exists
     const existingUser = await UserModel.findByEmail(email);
     if (existingUser) {
+      console.log("❌ User already exists:", email);
       return res.status(500).send({
         msg: "User already registered",
       });
@@ -64,6 +74,7 @@ userRouter.post("/signup", async (req, res) => {
     // Check if mobile already exists
     const existingMobile = await UserModel.findByMobile(mobile);
     if (existingMobile) {
+      console.log("❌ Mobile already exists:", mobile);
       return res.status(500).send({
         msg: "Mobile number already registered",
       });
@@ -81,11 +92,14 @@ userRouter.post("/signup", async (req, res) => {
       password: hashedPassword,
     };
 
+    console.log("✅ Creating user in database...");
     // Create user in Supabase
     const user = await UserModel.create(userData);
+    console.log("✅ User created successfully:", { id: user.id, email: user.email });
+    
     res.status(201).send({ msg: "Signup Successful", user: { id: user.id, email: user.email } });
   } catch (error) {
-    console.error("Signup error:", error);
+    console.error("❌ Signup error:", error);
     res.status(500).send({
       msg: "Error during signup",
       error: error.message
@@ -165,16 +179,25 @@ userRouter.post("/signup-direct", async (req, res) => {
 userRouter.post("/signin", async (req, res) => {
   let { payload, password } = req.body;
   
+  // Debug logging
+  console.log("🔍 Signin attempt:", {
+    payload,
+    hasPassword: !!password
+  });
+  
   try {
     // Try to find user by email first
     let user = await UserModel.findByEmail(payload);
+    console.log("🔍 User found by email:", !!user);
     
     // If not found by email, try mobile
     if (!user) {
       user = await UserModel.findByMobile(payload);
+      console.log("🔍 User found by mobile:", !!user);
     }
     
     if (!user) {
+      console.log("❌ User not found:", payload);
       return res.status(500).send({ msg: "User not Found" });
     }
 

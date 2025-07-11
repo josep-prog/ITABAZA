@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             // Make API call to doctor login endpoint
-            const response = await fetch(`${baseURL}/doctor/login`, {
+            const response = await fetch(`${baseURL}/api/dashboard/doctor/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
