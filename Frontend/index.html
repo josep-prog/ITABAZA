@@ -13,35 +13,7 @@
     <link rel="stylesheet" href="./Styles/responsive.css">
     <link rel="stylesheet" href="./css/all.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
-    <style>
-.download-section {
-  background-color: #f0f5ff;
-  padding: 3rem 1rem;
-  text-align: center;
-  border-radius: 10px;
-  max-width: 600px;
-  margin: 3rem auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-.btn-download {
-  background-color: #2f54eb;
-  color: white;
-  font-weight: 600;
-  border-radius: 6px;
-  padding: 0.75rem 1.5rem;
-  transition: background-color 0.3s ease;
-  border: none;
-  text-decoration: none;
-  display: inline-block;
-  margin-top: 1.5rem;   /* Add space above the button */
-  margin-bottom: 1rem;  /* Add space below if needed */
-}
 
-.btn-download:hover {
-  background-color: #1d39c4;
-}
-
-    </style>
 </head>
 
 <body>
@@ -59,11 +31,11 @@
             </video> -->
         </div>
     </section>
-    <section class="download-section" id="download">
-    <h2 class="mb-3">Get the Itabaza App</h2>
-    <p class="mb-4">Download our mobile app to book appointments anytime, anywhere.</p>
-    <a href="#" class="btn btn-download px-4 py-2">Download App</a>
-    </section>
+    <div class="center-container">
+  <a href="https://github.com/Esther447/ITABAZA/releases/latest/download/app-release.apk" download class="download-button">
+    📲 Download ITABAZA App
+  </a>
+</div>
     <section class="land-sections">
         <div id="feature-cont">
             <div data-aos="fade-down" data-aos-duration="800" class="feature-card">
@@ -244,6 +216,44 @@
     <script>
       AOS.init();
     </script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service worker registered'))
+      .catch(err => console.log('Service worker not registered', err));
+  }
+</script>
+<script>
+let deferredPrompt;
+const installBtn = document.getElementById('installBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = 'block';
+
+  installBtn.addEventListener('click', () => {
+    installBtn.style.display = 'none';
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choice) => {
+      if (choice.outcome === 'accepted') {
+        console.log('✅ User accepted install');
+      } else {
+        console.log('❌ User dismissed install');
+      }
+      deferredPrompt = null;
+    });
+  });
+});
+
+
+  // Register the service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then((reg) => console.log('Service Worker registered'))
+      .catch((err) => console.log('Service Worker registration failed:', err));
+  }
+</script>
 </body>
 
 <script type="module" src="./Scripts/navbar.js"></script>

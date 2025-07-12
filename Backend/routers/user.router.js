@@ -52,12 +52,86 @@ userRouter.post("/emailVerify", async (req, res) => {
 userRouter.post("/signup", async (req, res) => {
   let { first_name, last_name, email, mobile, password } = req.body;
   
+  // Debug logging
+  console.log("🔍 OTP Signup attempt:", {
+    first_name,
+    last_name,
+    email,
+    mobile,
+    hasPassword: !!password
+  });
+  
   try {
     // Check if user already exists
     const existingUser = await UserModel.findByEmail(email);
     if (existingUser) {
+      console.log("❌ User already exists:", email);
       return res.status(500).send({
         msg: "User already registered",
+      });
+    }
+
+    // Check if mobile already exists
+    const existingMobile = await UserModel.findByMobile(mobile);
+    if (existingMobile) {
+      console.log("❌ Mobile already exists:", mobile);
+      return res.status(500).send({
+        msg: "Mobile number already registered",
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 5);
+    
+    // Create user data
+    const userData = {
+      first_name,
+      last_name,
+      email,
+      mobile,
+      password: hashedPassword,
+    };
+
+    console.log("✅ Creating user in database...");
+    // Create user in Supabase
+    const user = await UserModel.create(userData);
+    console.log("✅ User created successfully:", { id: user.id, email: user.email });
+    
+    res.status(201).send({ msg: "Signup Successful", user: { id: user.id, email: user.email } });
+  } catch (error) {
+    console.error("❌ Signup error:", error);
+    res.status(500).send({
+      msg: "Error during signup",
+      error: error.message
+    });
+  }
+});
+
+// Direct signup without OTP (alternative endpoint)
+userRouter.post("/signup-direct", async (req, res) => {
+  let { first_name, last_name, email, mobile, password } = req.body;
+  
+  try {
+    // Validate required fields
+    if (!first_name || !last_name || !email || !mobile || !password) {
+      return res.status(400).send({
+        msg: "All fields are required"
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await UserModel.findByEmail(email);
+    if (existingUser) {
+      return res.status(400).send({
+        msg: "User already registered with this email",
+      });
+    }
+
+    // Check if mobile already exists
+    const existingMobile = await UserModel.findByMobile(mobile);
+    if (existingMobile) {
+      return res.status(400).send({
+        msg: "Mobile number already registered",
       });
     }
 
@@ -75,9 +149,26 @@ userRouter.post("/signup", async (req, res) => {
 
     // Create user in Supabase
     const user = await UserModel.create(userData);
-    res.status(201).send({ msg: "Signup Successful", user: { id: user.id, email: user.email } });
+    
+    // Generate JWT token for immediate login
+    const token = jwt.sign(
+      { userID: user.id, email: user.email },
+      process.env.JWT_SECRET || "masai"
+    );
+    
+    res.status(201).send({ 
+      msg: "Signup Successful", 
+      user: { 
+        id: user.id, 
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        mobile: user.mobile
+      },
+      token
+    });
   } catch (error) {
-    console.error("Signup error:", error);
+    console.error("Direct signup error:", error);
     res.status(500).send({
       msg: "Error during signup",
       error: error.message
@@ -88,16 +179,25 @@ userRouter.post("/signup", async (req, res) => {
 userRouter.post("/signin", async (req, res) => {
   let { payload, password } = req.body;
   
+  // Debug logging
+  console.log("🔍 Signin attempt:", {
+    payload,
+    hasPassword: !!password
+  });
+  
   try {
     // Try to find user by email first
     let user = await UserModel.findByEmail(payload);
+    console.log("🔍 User found by email:", !!user);
     
     // If not found by email, try mobile
     if (!user) {
       user = await UserModel.findByMobile(payload);
+      console.log("🔍 User found by mobile:", !!user);
     }
     
     if (!user) {
+      console.log("❌ User not found:", payload);
       return res.status(500).send({ msg: "User not Found" });
     }
 

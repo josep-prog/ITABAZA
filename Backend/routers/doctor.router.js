@@ -187,24 +187,142 @@ doctorRouter.patch("/isAvailable/:doctorId", async (req, res) => {
   }
 });
 
-// Real-time doctor updates
-doctorRouter.get("/realtime", async (req, res) => {
+// Doctor login endpoint
+doctorRouter.post("/login", async (req, res) => {
   try {
-    const { supabase } = require("../config/db");
-    
-    const subscription = supabase
-      .channel('doctors_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'doctors' }, 
-        (payload) => {
-          console.log('Doctor change:', payload);
-        }
-      )
-      .subscribe();
+    const { email, password } = req.body;
 
-    res.json({ message: "Real-time doctor subscription set up" });
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Email and password are required" 
+      });
+    }
+
+    // Find doctor by email
+    const doctor = await DoctorModel.findByEmail(email);
+    
+    if (!doctor) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid email or password" 
+      });
+    }
+
+    // Check if doctor is approved and available
+    if (!doctor.status) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Doctor account is pending approval" 
+      });
+    }
+
+    // For now, we'll use a simple password check (in production, use proper hashing)
+    // Since we don't have password field in current schema, we'll allow email-only login for demo
+    // In production, add password hashing and verification here
+    
+    // Generate a simple token (in production, use JWT)
+    const token = `doctor_${doctor.id}_${Date.now()}`;
+    
+    res.json({
+      success: true,
+      message: "Login successful",
+      token: token,
+      doctor: {
+        id: doctor.id,
+        doctor_name: doctor.doctor_name,
+        email: doctor.email,
+        qualifications: doctor.qualifications,
+        experience: doctor.experience,
+        city: doctor.city,
+        department_id: doctor.department_id,
+        image: doctor.image
+      }
+    });
+    
   } catch (error) {
-    res.status(500).send({ msg: "Error setting up real-time", error: error.message });
+    console.error("Doctor login error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Internal server error" 
+    });
+  }
+});
+
+// Get appointments for a specific doctor
+doctorRouter.get("/appointments/:doctorId", async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    
+    // Import appointment model
+    const { AppointmentModel } = require("../models/appointment.model");
+    
+    // Get appointments for this doctor
+    const appointments = await AppointmentModel.findByDoctorId(doctorId);
+    
+    res.json({
+      success: true,
+      total: appointments.length,
+      appointments: appointments
+    });
+    
+  } catch (error) {
+    console.error("Error getting doctor appointments:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching appointments" 
+    });
+  }
+});
+
+// Get doctor dashboard statistics
+doctorRouter.get("/stats/:doctorId", async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    
+    // Import appointment model
+    const { AppointmentModel } = require("../models/appointment.model");
+    
+    // Get all appointments for this doctor
+    const appointments = await AppointmentModel.findByDoctorId(doctorId);
+    
+    // Calculate statistics
+    const totalAppointments = appointments.length;
+    const pendingAppointments = appointments.filter(app => !app.status).length;
+    const completedAppointments = appointments.filter(app => app.status).length;
+    
+    // Get today's appointments
+    const today = new Date().toISOString().split('T')[0];
+    const todayAppointments = appointments.filter(app => 
+      app.appointment_date === today
+    ).length;
+    
+    // Calculate unique patients
+    const uniquePatients = new Set(appointments.map(app => app.patient_id)).size;
+    
+    // Calculate revenue (if payment_amount exists)
+    const totalRevenue = appointments
+      .filter(app => app.payment_status && app.payment_amount)
+      .reduce((sum, app) => sum + parseFloat(app.payment_amount || 0), 0);
+    
+    res.json({
+      success: true,
+      stats: {
+        totalAppointments,
+        pendingAppointments,
+        completedAppointments,
+        todayAppointments,
+        uniquePatients,
+        totalRevenue: totalRevenue.toFixed(2)
+      }
+    });
+    
+  } catch (error) {
+    console.error("Error getting doctor stats:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching statistics" 
+    });
   }
 });
 

@@ -16,6 +16,8 @@ const { appointmentRouter } = require("./routers/appointment.router");
 const { enhancedAppointmentRouter } = require("./routers/enhanced-appointment.router");
 const { dashboardRouter } = require("./routers/adminDash.router");
 const { audioRouter } = require("./routers/audio.router");
+const dashboardApiRouter = require("./routers/dashboard.router");
+const adminDashboardRouter = require("./routers/admin-dashboard.router");
 // const { authenticate } = require("./middlewares/authenticator.mw");
 
 
@@ -27,6 +29,8 @@ app.use("/appointment",appointmentRouter);
 app.use("/enhanced-appointment", enhancedAppointmentRouter);
 app.use("/admin", dashboardRouter);
 app.use("/audio", audioRouter);
+app.use("/api/dashboard", dashboardApiRouter);
+app.use("/api/admin", adminDashboardRouter);
 
 // Test Supabase connection
 app.get("/api/health", async (req, res) => {
@@ -86,11 +90,11 @@ app.get('/test-supabase', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 app.listen(process.env.PORT || 8080, async () => {
   try {
     console.log("Connected to Supabase");
     console.log(`Server listening at ${process.env.PORT || 8080}`);
+    console.log('Server is up and running with necessary routes!');
   } catch (error) {
     console.log("Error connecting to database:", error);
   }

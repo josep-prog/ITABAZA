@@ -1,6 +1,7 @@
 {
   "name": "Itabaza",
   "short_name": "Itabaza",
+<<<<<<< HEAD
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -19,3 +20,17 @@
   ]
 }
 
+=======
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00796B",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
+>>>>>>> 1890e31cf4a3f97065a1b71c6775d4b66b46a428
