@@ -111,7 +111,7 @@ appointmentRouter.post("/create/:doctorId", authenticate, async (req, res) => {
       problem_description: problemDescription,
       appointment_date: appointmentDate,
       slot_time: slotTime,
-      status: false,
+      status: 'pending',
       payment_status: Boolean(paymentDetails.transactionId),
       // Payment details for Rwanda mobile money
       payment_transaction_id: paymentDetails.transactionId || null,
@@ -286,7 +286,7 @@ appointmentRouter.delete("/reject/:appointmentId", async (req, res) => {
 appointmentRouter.patch("/approve/:appointmentId", async (req, res) => {
   try {
     const appointment = await AppointmentModel.update(req.params.appointmentId, {
-      status: true
+      status: 'confirmed'
     });
     res.status(200).send({ msg: "Appointment approved successfully", appointment });
   } catch (error) {

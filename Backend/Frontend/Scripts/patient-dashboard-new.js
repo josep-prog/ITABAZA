@@ -1,5 +1,19 @@
 import { baseURL, handleApiResponse, getAuthHeaders } from './baseURL.js';
 
+// Patient-specific authentication functions
+function getPatientAuthHeaders() {
+    const token = localStorage.getItem('patientToken') || sessionStorage.getItem('patientToken');
+    return {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+}
+
+function getCurrentPatientFromStorage() {
+    const patientInfo = localStorage.getItem('patientInfo') || sessionStorage.getItem('patientInfo');
+    return patientInfo ? JSON.parse(patientInfo) : null;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const navLinks = document.querySelectorAll('.sidebar-menu .nav-link');
     const pageContents = document.querySelectorAll('.page-content');
@@ -10,9 +24,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const patientInfo = getCurrentPatient();
     if (!patientInfo) {
+        console.log('❌ No patient info found, redirecting to login');
         logout();
+        return;
     }
 
+    console.log('✅ Patient info loaded:', patientInfo);
     patientNameElem.textContent = `${patientInfo.first_name} ${patientInfo.last_name}`;
     patientEmailElem.textContent = patientInfo.email;
     refreshDashboard();
@@ -26,10 +43,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function refreshDashboard() {
         try {
+            console.log('🔍 Refreshing dashboard for patient:', patientInfo.id);
             const response = await fetch(`${baseURL}/api/dashboard/patient/${patientInfo.id}/dashboard`, {
-                headers: getAuthHeaders(),
+                headers: getPatientAuthHeaders(),
             });
+            
+            console.log('Dashboard response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await handleApiResponse(response);
+            console.log('Dashboard data received:', data);
+            
             if (!data.success) {
                 throw new Error('Failed to fetch dashboard data');
             }
@@ -40,10 +67,12 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('totalDocuments').textContent = dashboardData.total_documents || 0;
             document.getElementById('supportTickets').textContent = dashboardData.support_tickets || 0;
 
-            populateAppointments(dashboardData);
-            populateDocuments();
+            console.log('✅ Dashboard stats updated successfully');
+            await populateAppointments();
+            await populateDocuments();
         } catch (error) {
-            console.error('Error fetching dashboard data:', error);
+            console.error('❌ Error fetching dashboard data:', error);
+            showErrorMessage('Failed to load dashboard data. Please try again.');
         }
     }
 
@@ -64,13 +93,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function populateAppointments() {
         try {
-            const response = await fetch(`${baseURL}/api/dashboard/patient/${patientInfo.id}/appointments?limit=5`, {
-                headers: getAuthHeaders(),
+            const response = await fetch(`${baseURL}/api/dashboard/patient/${patientInfo.id}/appointments?limit=10`, {
+                headers: getPatientAuthHeaders(),
             });
             const data = await handleApiResponse(response);
             
             if (!data.success || !data.data || data.data.length === 0) {
-                appointmentGrid.innerHTML = '<p>No appointments to show</p>';
+                appointmentGrid.innerHTML = '<div class="empty-state"><p>No appointments found</p></div>';
                 return;
             }
 
@@ -82,36 +111,58 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } catch (error) {
             console.error('Error fetching appointments:', error);
-            appointmentGrid.innerHTML = '<p>Error loading appointments</p>';
+            appointmentGrid.innerHTML = '<div class="error-state"><p>Error loading appointments. Please try again.</p></div>';
         }
     }
 
     async function populateDocuments() {
         try {
+            console.log('📄 Fetching documents for patient:', patientInfo.id);
             const response = await fetch(`${baseURL}/api/dashboard/patient/${patientInfo.id}/documents`, {
-                headers: getAuthHeaders(),
+                headers: getPatientAuthHeaders(),
             });
+            
+            console.log('Documents response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await handleApiResponse(response);
+            console.log('Documents data received:', data);
+            
             if (!data.success) {
                 throw new Error('Failed to fetch documents');
             }
 
             documentsTableBody.innerHTML = '';
-            data.data.forEach(document => {
+            if (!data.data || data.data.length === 0) {
+                console.log('⚠️ No documents found for patient');
+                documentsTableBody.innerHTML = '<tr><td colspan="5" class="text-center">No documents available</td></tr>';
+                return;
+            }
+
+            console.log(`✅ Found ${data.data.length} document(s) for patient`);
+            data.data.forEach((document, index) => {
+                console.log(`Document ${index + 1}:`, document);
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${document.document_name}</td>
                     <td>${document.document_type}</td>
-                    <td>${document.doctors.doctor_name}</td>
-                    <td>${document.appointments.appointment_date}</td>
+                    <td>${document.doctor_name || 'N/A'}</td>
+                    <td>${document.document_date || 'N/A'}</td>
                     <td>
-                        <button class='btn btn-secondary' onclick='viewDocument(${document.document_url})'>View</button>
+                        <button class='btn btn-secondary' onclick='viewDocument("${document.file_url}")'>View</button>
+                        <button class='btn btn-primary' onclick='downloadDocument("${document.file_url}", "${document.document_name}")'>Download</button>
                     </td>
                 `;
                 documentsTableBody.appendChild(row);
             });
+            
+            console.log('✅ Documents table populated successfully');
         } catch (error) {
-            console.error('Error fetching documents:', error);
+            console.error('❌ Error fetching documents:', error);
+            documentsTableBody.innerHTML = '<tr><td colspan="5" class="text-center">Error loading documents</td></tr>';
         }
     }
 
@@ -127,24 +178,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function getCurrentPatient() {
-        const patientInfo = localStorage.getItem('patientInfo');
-        return patientInfo ? JSON.parse(patientInfo) : null;
+        return getCurrentPatientFromStorage();
     }
 
-    function getAuthHeaders() {
-        const token = localStorage.getItem('patientToken');
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        };
-    }
-
-    async function handleApiResponse(response) {
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.message || 'Unknown error occurred');
-        }
-        return data;
+    // Support form submission
+    const supportForm = document.getElementById('supportForm');
+    if (supportForm) {
+        supportForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const supportData = {
+                userId: patientInfo.id,
+                userType: 'patient',
+                userName: `${patientInfo.first_name} ${patientInfo.last_name}`,
+                userEmail: patientInfo.email,
+                ticketType: formData.get('ticketType'),
+                subject: formData.get('subject'),
+                description: formData.get('description'),
+                priority: formData.get('priority')
+            };
+            
+            try {
+                const response = await fetch(`${baseURL}/api/dashboard/support/ticket`, {
+                    method: 'POST',
+                    headers: getPatientAuthHeaders(),
+                    body: JSON.stringify(supportData)
+                });
+                
+                const result = await handleApiResponse(response);
+                if (result.success) {
+                    showSuccessMessage('Support ticket submitted successfully!');
+                    this.reset();
+                } else {
+                    showErrorMessage('Failed to submit support ticket. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error submitting support ticket:', error);
+                showErrorMessage('Error submitting support ticket. Please try again.');
+            }
+        });
     }
 
     function createAppointmentCard(appointment) {
@@ -198,6 +271,66 @@ document.addEventListener('DOMContentLoaded', function() {
             'in-person': '<span class="badge type-in-person">In-Person</span>'
         };
         return badges[type] || '<span class="badge">Unknown</span>';
+    }
+
+    // Utility functions
+    function showSuccessMessage(message) {
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success';
+        alert.textContent = message;
+        alert.style.position = 'fixed';
+        alert.style.top = '20px';
+        alert.style.right = '20px';
+        alert.style.zIndex = '9999';
+        alert.style.padding = '10px 20px';
+        alert.style.backgroundColor = '#d4edda';
+        alert.style.color = '#155724';
+        alert.style.borderRadius = '5px';
+        document.body.appendChild(alert);
+        
+        setTimeout(() => {
+            alert.remove();
+        }, 5000);
+    }
+
+    function showErrorMessage(message) {
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-error';
+        alert.textContent = message;
+        alert.style.position = 'fixed';
+        alert.style.top = '20px';
+        alert.style.right = '20px';
+        alert.style.zIndex = '9999';
+        alert.style.padding = '10px 20px';
+        alert.style.backgroundColor = '#f8d7da';
+        alert.style.color = '#721c24';
+        alert.style.borderRadius = '5px';
+        document.body.appendChild(alert);
+        
+        setTimeout(() => {
+            alert.remove();
+        }, 5000);
+    }
+
+    // Global functions for document viewing
+    window.viewDocument = function(documentUrl) {
+        window.open(documentUrl, '_blank');
+    };
+
+    window.downloadDocument = function(documentUrl, documentName) {
+        const link = document.createElement('a');
+        link.href = documentUrl;
+        link.download = documentName;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // Refresh button functionality
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', refreshDashboard);
     }
 });
 

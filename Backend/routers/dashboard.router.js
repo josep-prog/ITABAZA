@@ -127,8 +127,8 @@ router.get('/doctor/:doctorId/dashboard', async (req, res) => {
                     const today = new Date().toISOString().split('T')[0];
                     return a.appointment_date > today;
                 }).length || 0,
-                total_documents: 0, // Will be 0 until document table is created
-                support_tickets: 0 // Will be 0 until support table is created
+                total_documents: 0, // Will be updated once documents are uploaded
+                support_tickets: 0 // Will be updated once support system is active
             }
         });
     } catch (error) {
@@ -152,6 +152,38 @@ router.get('/patient/:patientId/dashboard', async (req, res) => {
             throw appointmentError;
         }
 
+        // Get documents count from patient_documents table
+        const { data: documents, error: documentsError } = await supabase
+            .from('patient_documents')
+            .select('id')
+            .eq('patient_id', patientId)
+            .eq('status', 'active')
+            .eq('is_accessible_to_patient', true);
+        
+        console.log(`📊 Dashboard stats for patient ${patientId}: ${documents?.length || 0} documents`);
+
+        if (documentsError) {
+            console.error('Error fetching documents count:', documentsError);
+        }
+
+        // Get support tickets count (if support_tickets table exists)
+        let supportTickets = [];
+        try {
+            const { data: tickets, error: supportError } = await supabase
+                .from('support_tickets')
+                .select('id')
+                .eq('user_id', patientId)
+                .eq('user_type', 'patient');
+                
+            if (!supportError) {
+                supportTickets = tickets || [];
+            } else {
+                console.error('Support tickets table not available:', supportError.message);
+            }
+        } catch (supportErr) {
+            console.error('Support tickets table not available:', supportErr.message);
+        }
+
         const totalAppointments = appointments?.length || 0;
         const pendingAppointments = appointments?.filter(a => a.status === 'pending').length || 0;
         const completedAppointments = appointments?.filter(a => a.status === 'completed').length || 0;
@@ -167,8 +199,8 @@ router.get('/patient/:patientId/dashboard', async (req, res) => {
                 upcoming_appointments: upcomingAppointments,
                 pending_appointments: pendingAppointments,
                 completed_appointments: completedAppointments,
-                total_documents: 0, // Will be 0 until document table is created
-                support_tickets: 0 // Will be 0 until support table is created
+                total_documents: documents?.length || 0,
+                support_tickets: supportTickets?.length || 0
             }
         });
     } catch (error) {
@@ -299,26 +331,28 @@ router.put('/appointment/:appointmentId/status', async (req, res) => {
 // DOCUMENTS ENDPOINTS
 // =====================================================
 
-// Upload document (disabled until documents table is created)
+// Upload document
 router.post('/doctor/:doctorId/documents/upload', upload.single('document'), async (req, res) => {
-    res.status(501).json({ error: 'Document upload not implemented yet. Please create documents table first.' });
-    return;
-    // Original code below:
     try {
         const { doctorId } = req.params;
-        const { appointmentId, patientId, documentType, description } = req.body;
+        const { appointmentId, patientId, documentType, description, documentCategory = 'medical', medicalNotes = '', doctorComments = '' } = req.body;
         const file = req.file;
 
         if (!file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
 
+        // Validate required fields
+        if (!patientId || !documentType) {
+            return res.status(400).json({ error: 'Patient ID and document type are required' });
+        }
+
         // Upload file to Supabase Storage
         const fileName = `${Date.now()}_${file.originalname}`;
-        const filePath = `documents/${doctorId}/${fileName}`;
+        const filePath = `patient-documents/${patientId}/${fileName}`;
 
         const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('documents')
+            .from('patient-documents')
             .upload(filePath, file.buffer, {
                 contentType: file.mimetype,
                 cacheControl: '3600',
@@ -331,58 +365,113 @@ router.post('/doctor/:doctorId/documents/upload', upload.single('document'), asy
 
         // Get public URL
         const { data: { publicUrl } } = supabase.storage
-            .from('documents')
+            .from('patient-documents')
             .getPublicUrl(filePath);
 
-        // Save document record to database
-        const { data: documentData, error: dbError } = await supabase
-            .rpc('upload_document', {
-                p_appointment_id: appointmentId,
-                p_doctor_id: doctorId,
-                p_patient_id: patientId,
-                p_document_name: file.originalname,
-                p_document_type: documentType,
-                p_document_url: publicUrl,
-                p_file_size: file.size,
-                p_mime_type: file.mimetype,
-                p_description: description
-            });
+        // Save document record to patient_documents table using the stored function
+        let documentData, dbError;
+        
+        try {
+            const result = await supabase
+                .rpc('upload_patient_document', {
+                    p_patient_id: patientId,
+                    p_doctor_id: doctorId,
+                    p_appointment_id: appointmentId || null,
+                    p_document_name: file.originalname,
+                    p_document_type: documentType,
+                    p_file_url: publicUrl,
+                    p_file_name: fileName,
+                    p_file_size: file.size,
+                    p_mime_type: file.mimetype,
+                    p_description: description || null,
+                    p_medical_notes: medicalNotes || null,
+                    p_doctor_comments: doctorComments || null,
+                    p_document_category: documentCategory
+                });
+            documentData = result.data;
+            dbError = result.error;
+        } catch (funcError) {
+            console.log('Function not available, using direct insert...');
+            // Fallback: direct insert if function doesn't exist
+            const insertResult = await supabase
+                .from('patient_documents')
+                .insert({
+                    patient_id: patientId,
+                    doctor_id: doctorId,
+                    appointment_id: appointmentId || null,
+                    document_name: file.originalname,
+                    document_type: documentType,
+                    file_url: publicUrl,
+                    file_name: fileName,
+                    file_size: file.size,
+                    mime_type: file.mimetype,
+                    description: description || null,
+                    medical_notes: medicalNotes || null,
+                    doctor_comments: doctorComments || null,
+                    document_category: documentCategory || 'medical',
+                    is_accessible_to_patient: true,
+                    status: 'active',
+                    document_date: new Date().toISOString().split('T')[0]
+                })
+                .select();
+            
+            documentData = insertResult.data?.[0]?.id;
+            dbError = insertResult.error;
+        }
 
         if (dbError) {
+            console.error('Database error:', dbError);
             throw dbError;
         }
 
         res.json({
             success: true,
             message: 'Document uploaded successfully',
-            documentId: documentData
+            documentId: documentData,
+            data: {
+                id: documentData,
+                document_name: file.originalname,
+                document_type: documentType,
+                file_url: publicUrl,
+                uploaded_at: new Date().toISOString()
+            }
         });
     } catch (error) {
         console.error('Error uploading document:', error);
-        res.status(500).json({ error: 'Failed to upload document' });
+        res.status(500).json({ 
+            success: false,
+            error: 'Failed to upload document',
+            details: error.message
+        });
     }
 });
 
-// Get doctor documents (disabled until documents table is created)
+// Get doctor documents
 router.get('/doctor/:doctorId/documents', async (req, res) => {
-    res.json({
-        success: true,
-        data: [],
-        message: 'Documents table not created yet'
-    });
-    return;
-    // Original code below:
     try {
         const { doctorId } = req.params;
         const { page = 1, limit = 10 } = req.query;
 
+        // Query patient_documents table (not documents table)
         const { data: documents, error } = await supabase
-            .from('documents')
+            .from('patient_documents')
             .select(`
-                *,
+                id,
+                document_name,
+                document_type,
+                document_category,
+                file_url,
+                file_size,
+                description,
+                document_date,
+                uploaded_at,
+                patient_id,
+                doctors:doctor_id (
+                    doctor_name,
+                    qualifications
+                ),
                 appointments:appointment_id (
-                    appointment_date,
-                    patient_first_name
+                    appointment_date
                 ),
                 users:patient_id (
                     first_name,
@@ -390,7 +479,8 @@ router.get('/doctor/:doctorId/documents', async (req, res) => {
                 )
             `)
             .eq('doctor_id', doctorId)
-            .order('created_at', { ascending: false })
+            .eq('status', 'active')
+            .order('uploaded_at', { ascending: false })
             .range((page - 1) * limit, page * limit - 1);
 
         if (error) {
@@ -399,58 +489,114 @@ router.get('/doctor/:doctorId/documents', async (req, res) => {
 
         res.json({
             success: true,
-            data: documents,
+            data: documents || [],
             pagination: {
                 page: parseInt(page),
                 limit: parseInt(limit),
-                total: documents.length
+                total: documents?.length || 0
             }
         });
     } catch (error) {
         console.error('Error fetching doctor documents:', error);
-        res.status(500).json({ error: 'Failed to fetch documents' });
+        res.status(500).json({ 
+            success: false,
+            error: 'Failed to fetch documents',
+            details: error.message 
+        });
     }
 });
 
-// Get patient documents
+// Get patient documents from patient_documents table
 router.get('/patient/:patientId/documents', async (req, res) => {
     try {
         const { patientId } = req.params;
         const { page = 1, limit = 10 } = req.query;
 
-        const { data: documents, error } = await supabase
-            .from('documents')
-            .select(`
-                *,
-                doctors:doctor_id (
-                    doctor_name,
-                    qualifications
-                ),
-                appointments:appointment_id (
-                    appointment_date
-                )
-            `)
-            .eq('patient_id', patientId)
-            .eq('is_accessible_to_patient', true)
-            .order('created_at', { ascending: false })
-            .range((page - 1) * limit, page * limit - 1);
+        console.log(`📄 Fetching documents for patient ID: ${patientId}`);
+
+        // Use the stored function to get documents with full details
+        let documents, error;
+        
+        try {
+            const result = await supabase
+                .rpc('get_patient_documents', {
+                    p_patient_id: patientId,
+                    p_limit: parseInt(limit),
+                    p_offset: (parseInt(page) - 1) * parseInt(limit)
+                });
+            documents = result.data;
+            error = result.error;
+            console.log(`📄 Function returned ${documents?.length || 0} documents`);
+        } catch (funcError) {
+            console.log('Function not available, using direct query...');
+            error = funcError;
+        }
 
         if (error) {
-            throw error;
+            console.error('Error from get_patient_documents function:', error);
+            // Fallback to direct table query if function fails
+            const { data: fallbackDocuments, error: fallbackError } = await supabase
+                .from('patient_documents')
+                .select(`
+                    id,
+                    document_name,
+                    document_type,
+                    document_category,
+                    file_url,
+                    file_size,
+                    description,
+                    document_date,
+                    uploaded_at,
+                    doctors:doctor_id (
+                        doctor_name,
+                        qualifications
+                    ),
+                    appointments:appointment_id (
+                        appointment_date
+                    )
+                `)
+                .eq('patient_id', patientId)
+                .eq('status', 'active')
+                .eq('is_accessible_to_patient', true)
+                .order('uploaded_at', { ascending: false })
+                .range((parseInt(page) - 1) * parseInt(limit), parseInt(page) * parseInt(limit) - 1);
+            
+            if (fallbackError) {
+                console.error('Fallback query error:', fallbackError);
+                throw fallbackError;
+            }
+            
+            console.log(`📄 Fallback query returned ${fallbackDocuments?.length || 0} documents`);
+            
+            return res.json({
+                success: true,
+                data: fallbackDocuments || [],
+                pagination: {
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    total: fallbackDocuments?.length || 0
+                },
+                source: 'fallback'
+            });
         }
 
         res.json({
             success: true,
-            data: documents,
+            data: documents || [],
             pagination: {
                 page: parseInt(page),
                 limit: parseInt(limit),
-                total: documents.length
-            }
+                total: documents?.length || 0
+            },
+            source: 'function'
         });
     } catch (error) {
         console.error('Error fetching patient documents:', error);
-        res.status(500).json({ error: 'Failed to fetch documents' });
+        res.status(500).json({ 
+            success: false,
+            error: 'Failed to fetch documents',
+            details: error.message 
+        });
     }
 });
 
@@ -458,10 +604,8 @@ router.get('/patient/:patientId/documents', async (req, res) => {
 // SUPPORT TICKETS ENDPOINTS
 // =====================================================
 
-// Create support ticket (disabled until support_tickets table is created)
+// Create support ticket
 router.post('/support/ticket', async (req, res) => {
-    res.status(501).json({ error: 'Support tickets not implemented yet. Please create support_tickets table first.' });
-    return;
     // Original code below:
     try {
         const { userId, userType, userName, userEmail, ticketType, subject, description, priority } = req.body;

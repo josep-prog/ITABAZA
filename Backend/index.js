@@ -5,7 +5,14 @@ const nodemailer = require("nodemailer");
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+// Configure CORS for frontend running on port 3000
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://0.0.0.0:3000'],
+    credentials: true,
+    optionsSuccessStatus: 200,
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 
 const { userRouter } = require("./routers/user.router");
 const { supabase } = require("./config/db");
@@ -31,6 +38,9 @@ app.use("/admin", dashboardRouter);
 app.use("/audio", audioRouter);
 app.use("/api/dashboard", dashboardApiRouter);
 app.use("/api/admin", adminDashboardRouter);
+
+// Serve static frontend files from the Frontend directory
+app.use(express.static('./Frontend'));
 
 // Test Supabase connection
 app.get("/api/health", async (req, res) => {

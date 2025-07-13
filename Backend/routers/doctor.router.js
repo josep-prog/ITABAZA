@@ -28,6 +28,7 @@ doctorRouter.post("/addDoctor", async (req, res) => {
   let {
     doctorName,
     email,
+    password,
     qualifications,
     experience,
     phoneNo,
@@ -39,9 +40,15 @@ doctorRouter.post("/addDoctor", async (req, res) => {
   } = req.body;
   
   try {
+    // Validate required fields
+    if (!password) {
+      return res.status(400).send({ msg: "Password is required for doctor account" });
+    }
+    
     const doctorData = {
       doctor_name: doctorName,
       email,
+      password, // This will be hashed in the model
       qualifications,
       experience,
       phone_no: phoneNo,
@@ -217,9 +224,21 @@ doctorRouter.post("/login", async (req, res) => {
       });
     }
 
-    // For now, we'll use a simple password check (in production, use proper hashing)
-    // Since we don't have password field in current schema, we'll allow email-only login for demo
-    // In production, add password hashing and verification here
+    // Verify password
+    if (!doctor.password_hash) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Doctor account needs password setup. Contact admin." 
+      });
+    }
+    
+    const isPasswordValid = await DoctorModel.comparePassword(password, doctor.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid email or password" 
+      });
+    }
     
     // Generate a simple token (in production, use JWT)
     const token = `doctor_${doctor.id}_${Date.now()}`;
