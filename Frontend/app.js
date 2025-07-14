@@ -6,21 +6,28 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-// 📥 Fetch data from a table (example: messages)
-async function fetchMessages() {
+// 📥 Fetch data from a table (example: users)
+async function fetchUsers() {
   const { data, error } = await supabase
-    .from('messages') // change table name if needed
-    .select('*')
+    .from('users') // Using existing users table
+    .select('id, email, created_at')
+    .limit(5) // Limit to 5 records for testing
 
   const output = document.getElementById('output')
 
+  // Check if output element exists
+  if (!output) {
+    console.warn('⚠️ No element with id="output" found in HTML')
+    return
+  }
+
   if (error) {
     console.error('❌ Error:', error)
-    output.textContent = '❌ Failed to load data.'
+    output.textContent = '❌ Failed to load data: ' + error.message
   } else {
     console.log('✅ Data:', data)
     output.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`
   }
 }
 
-fetchMessages()
+fetchUsers()
