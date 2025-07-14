@@ -158,7 +158,7 @@ if(isUserLoggedIn()){
                     dashboardUrl = './dashboard.html'; // Admin dashboard
                     break;
                 case 'doctor':
-                    dashboardUrl = './doctor.dashboard.html'; // Doctor dashboard
+                    dashboardUrl = './doctor-dashboard.html'; // Doctor dashboard
                     break;
                 case 'patient':
                 default:

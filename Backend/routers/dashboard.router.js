@@ -604,11 +604,32 @@ router.get('/patient/:patientId/documents', async (req, res) => {
 // SUPPORT TICKETS ENDPOINTS
 // =====================================================
 
+// Authentication middleware
+const verifyAuth = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'No token provided' });
+    }
+
+    try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ success: false, message: 'Invalid token' });
+    }
+};
+
 // Create support ticket
-router.post('/support/ticket', async (req, res) => {
-    // Original code below:
+router.post('/support/ticket', verifyAuth, async (req, res) => {
     try {
         const { userId, userType, userName, userEmail, ticketType, subject, description, priority } = req.body;
+
+        // Verify user can only create tickets for themselves
+        if (req.user.id !== userId) {
+            return res.status(403).json({ success: false, message: 'You can only create tickets for yourself' });
+        }
 
         const { data: ticketId, error } = await supabase
             .rpc('create_support_ticket', {
@@ -667,6 +688,38 @@ router.get('/support/tickets/:userId', async (req, res) => {
     } catch (error) {
         console.error('Error fetching support tickets:', error);
         res.status(500).json({ error: 'Failed to fetch support tickets' });
+    }
+});
+
+// Alternative support ticket creation without auth middleware for testing
+router.post('/support/ticket-test', async (req, res) => {
+    try {
+        const { userId, userType, userName, userEmail, ticketType, subject, description, priority } = req.body;
+
+        const { data: ticketId, error } = await supabase
+            .rpc('create_support_ticket', {
+                p_user_id: userId,
+                p_user_type: userType,
+                p_user_name: userName,
+                p_user_email: userEmail,
+                p_ticket_type: ticketType,
+                p_subject: subject,
+                p_description: description,
+                p_priority: priority || 'medium'
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        res.json({
+            success: true,
+            message: 'Support ticket created successfully',
+            ticketId: ticketId
+        });
+    } catch (error) {
+        console.error('Error creating support ticket:', error);
+        res.status(500).json({ error: 'Failed to create support ticket', details: error.message });
     }
 });
 

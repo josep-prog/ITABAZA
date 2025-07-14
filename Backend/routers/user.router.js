@@ -229,6 +229,25 @@ userRouter.post("/signin", async (req, res) => {
   }
 });
 
+// Get all users endpoint (for doctor dashboard patient selection)
+userRouter.get("/get-all-users", async (req, res) => {
+  try {
+    const users = await UserModel.findAll();
+    res.status(200).json({
+      success: true,
+      data: users,
+      total: users.length
+    });
+  } catch (error) {
+    console.error("Error getting all users:", error);
+    res.status(500).json({ 
+      success: false,
+      msg: "Error fetching users", 
+      error: error.message 
+    });
+  }
+});
+
 // Real-time user updates using Supabase
 userRouter.get("/realtime", async (req, res) => {
   try {

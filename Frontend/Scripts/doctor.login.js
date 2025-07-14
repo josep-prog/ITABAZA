@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if doctor is already logged in
     const doctorToken = localStorage.getItem('doctorToken') || sessionStorage.getItem('doctorToken');
     if (doctorToken) {
-        window.location.href = './doctor.dashboard.html';
+        window.location.href = './doctor-dashboard.html';
         return;
     }
 
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Redirect to doctor dashboard
                 setTimeout(() => {
-                    window.location.href = './doctor.dashboard.html';
+                    window.location.href = './doctor-dashboard.html';
                 }, 2000);
             } else {
                 throw new Error(data.message || 'Login failed');

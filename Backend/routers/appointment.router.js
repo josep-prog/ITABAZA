@@ -243,6 +243,49 @@ appointmentRouter.patch("/reschedule/:appointmentId", authenticate, async (req, 
 });
 
 //!! Admin Side OPERATION------------------------------>
+// Get appointments by doctor ID
+appointmentRouter.get("/doctor/:doctorId", async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    const appointments = await AppointmentModel.findByDoctorId(doctorId);
+    
+    if (!appointments || appointments.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No appointments found for this doctor",
+        data: [],
+        count: 0
+      });
+    }
+    
+    // Calculate statistics
+    const today = new Date().toISOString().split('T')[0];
+    const stats = {
+      total: appointments.length,
+      today: appointments.filter(app => app.appointment_date === today).length,
+      pending: appointments.filter(app => app.status === 'pending').length,
+      confirmed: appointments.filter(app => app.status === 'confirmed').length,
+      completed: appointments.filter(app => app.status === 'completed').length,
+      cancelled: appointments.filter(app => app.status === 'cancelled').length
+    };
+    
+    res.status(200).json({
+      success: true,
+      message: "Doctor appointments retrieved successfully",
+      data: appointments,
+      stats: stats,
+      count: appointments.length
+    });
+  } catch (error) {
+    console.error("Error getting doctor appointments:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error getting doctor appointments",
+      error: error.message
+    });
+  }
+});
+
 // Get all appointments (Admin)
 appointmentRouter.get("/all", async (req, res) => {
   try {
