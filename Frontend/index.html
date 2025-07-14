@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="./Styles/responsive.css">
     <link rel="stylesheet" href="./css/all.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="manifest" href="manifest.json">
+    <script type="module" src="app.js"></script>
 
 </head>
 
@@ -254,16 +256,9 @@ window.addEventListener('beforeinstallprompt', (e) => {
       .catch((err) => console.log('Service Worker registration failed:', err));
   }
 </script>
+
 </body>
 
 <script type="module" src="./Scripts/navbar.js"></script>
 <script type="module" src="./Scripts/footer.js"></script>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(() => console.log('✅ Service Worker Registered'));
-  }
-</script>
-
-
 </html>
