@@ -33,7 +33,7 @@ userRouter.post("/emailVerify", async (req, res) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
-    subject: "Here is your OTP for Medistar Login",
+    subject: "Here is your OTP for iTABAZA Login",
     text: otp,
   };
 
@@ -226,6 +226,25 @@ userRouter.post("/signin", async (req, res) => {
   } catch (error) {
     console.error("Signin error:", error);
     res.status(500).send({ msg: "Error in Login", error: error.message });
+  }
+});
+
+// Get all users endpoint (for doctor dashboard patient selection)
+userRouter.get("/get-all-users", async (req, res) => {
+  try {
+    const users = await UserModel.findAll();
+    res.status(200).json({
+      success: true,
+      data: users,
+      total: users.length
+    });
+  } catch (error) {
+    console.error("Error getting all users:", error);
+    res.status(500).json({ 
+      success: false,
+      msg: "Error fetching users", 
+      error: error.message 
+    });
   }
 });
 
