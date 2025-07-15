@@ -1,13 +1,7 @@
 {
-<<<<<<< Updated upstream
   "name": "iTABAZA",
   "short_name": "iTABAZA",
-  "start_url": "./index.html",
-=======
-  "name": "Itabaza",
-  "short_name": "Itabaza",
-  "start_url": "/",
->>>>>>> Stashed changes
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4CAF50",
