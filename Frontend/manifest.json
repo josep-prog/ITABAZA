@@ -1,7 +1,13 @@
 {
+<<<<<<< HEAD
   "name": "ITABAZA APP",
   "short_name": "Itabaza",
   "start_url": "/",
+=======
+  "name": "iTABAZA",
+  "short_name": "iTABAZA",
+  "start_url": "./",
+>>>>>>> c8f447048475fd2f73e884f15fe1455b16a1495f
   "display": "standalone",
   "theme_color": "#3367D6",
   "background_color": "#ffffff",
