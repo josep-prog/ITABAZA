@@ -5,7 +5,14 @@ const nodemailer = require("nodemailer");
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+// Configure CORS for frontend running on port 3000
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://0.0.0.0:3000'],
+    credentials: true,
+    optionsSuccessStatus: 200,
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 
 const { userRouter } = require("./routers/user.router");
 const { supabase } = require("./config/db");
@@ -16,6 +23,8 @@ const { appointmentRouter } = require("./routers/appointment.router");
 const { enhancedAppointmentRouter } = require("./routers/enhanced-appointment.router");
 const { dashboardRouter } = require("./routers/adminDash.router");
 const { audioRouter } = require("./routers/audio.router");
+const dashboardApiRouter = require("./routers/dashboard.router");
+const adminDashboardRouter = require("./routers/admin-dashboard.router");
 // const { authenticate } = require("./middlewares/authenticator.mw");
 
 
@@ -27,6 +36,11 @@ app.use("/appointment",appointmentRouter);
 app.use("/enhanced-appointment", enhancedAppointmentRouter);
 app.use("/admin", dashboardRouter);
 app.use("/audio", audioRouter);
+app.use("/api/dashboard", dashboardApiRouter);
+app.use("/api/admin", adminDashboardRouter);
+
+// Serve static frontend files from the Frontend directory
+app.use(express.static('./Frontend'));
 
 // Test Supabase connection
 app.get("/api/health", async (req, res) => {
@@ -86,11 +100,11 @@ app.get('/test-supabase', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 app.listen(process.env.PORT || 8080, async () => {
   try {
     console.log("Connected to Supabase");
     console.log(`Server listening at ${process.env.PORT || 8080}`);
+    console.log('Server is up and running with necessary routes!');
   } catch (error) {
     console.log("Error connecting to database:", error);
   }

@@ -28,6 +28,7 @@ doctorRouter.post("/addDoctor", async (req, res) => {
   let {
     doctorName,
     email,
+    password,
     qualifications,
     experience,
     phoneNo,
@@ -39,9 +40,15 @@ doctorRouter.post("/addDoctor", async (req, res) => {
   } = req.body;
   
   try {
+    // Validate required fields
+    if (!password) {
+      return res.status(400).send({ msg: "Password is required for doctor account" });
+    }
+    
     const doctorData = {
       doctor_name: doctorName,
       email,
+      password, // This will be hashed in the model
       qualifications,
       experience,
       phone_no: phoneNo,
@@ -217,12 +224,33 @@ doctorRouter.post("/login", async (req, res) => {
       });
     }
 
-    // For now, we'll use a simple password check (in production, use proper hashing)
-    // Since we don't have password field in current schema, we'll allow email-only login for demo
-    // In production, add password hashing and verification here
+    // Verify password
+    if (!doctor.password_hash) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Doctor account needs password setup. Contact admin." 
+      });
+    }
     
-    // Generate a simple token (in production, use JWT)
-    const token = `doctor_${doctor.id}_${Date.now()}`;
+    const isPasswordValid = await DoctorModel.comparePassword(password, doctor.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid email or password" 
+      });
+    }
+    
+    // Generate JWT token
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign(
+      { 
+        id: doctor.id, 
+        email: doctor.email, 
+        type: 'doctor' 
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
     
     res.json({
       success: true,
@@ -249,10 +277,42 @@ doctorRouter.post("/login", async (req, res) => {
   }
 });
 
-// Get appointments for a specific doctor
-doctorRouter.get("/appointments/:doctorId", async (req, res) => {
+// Middleware to verify doctor authentication
+const verifyDoctorAuth = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'No token provided' });
+    }
+
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    
+    if (decoded.type !== 'doctor') {
+      return res.status(403).json({ success: false, message: 'Invalid token type' });
+    }
+
+    req.doctor = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: 'Invalid token' });
+  }
+};
+
+// Get appointments for a specific doctor (with authentication)
+doctorRouter.get("/appointments/:doctorId", verifyDoctorAuth, async (req, res) => {
   try {
     const { doctorId } = req.params;
+    
+    // Verify the doctor can only access their own appointments
+    // Convert both to strings for comparison
+    if (String(req.doctor.id) !== String(doctorId)) {
+      console.log(`Access denied: Doctor ID ${req.doctor.id} trying to access appointments for ${doctorId}`);
+      return res.status(403).json({ 
+        success: false, 
+        message: "You can only access your own appointments" 
+      });
+    }
     
     // Import appointment model
     const { AppointmentModel } = require("../models/appointment.model");
@@ -322,6 +382,32 @@ doctorRouter.get("/stats/:doctorId", async (req, res) => {
     res.status(500).json({ 
       success: false, 
       message: "Error fetching statistics" 
+    });
+  }
+});
+
+// Alternative route without authentication for testing
+doctorRouter.get("/appointments-test/:doctorId", async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    
+    // Import appointment model
+    const { AppointmentModel } = require("../models/appointment.model");
+    
+    // Get appointments for this doctor
+    const appointments = await AppointmentModel.findByDoctorId(doctorId);
+    
+    res.json({
+      success: true,
+      total: appointments.length,
+      appointments: appointments
+    });
+    
+  } catch (error) {
+    console.error("Error getting doctor appointments:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching appointments" 
     });
   }
 });

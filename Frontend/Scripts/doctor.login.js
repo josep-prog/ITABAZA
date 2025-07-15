@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if doctor is already logged in
     const doctorToken = localStorage.getItem('doctorToken') || sessionStorage.getItem('doctorToken');
     if (doctorToken) {
-        window.location.href = './doctor.dashboard.html';
+        window.location.href = './doctor-dashboard.html';
         return;
     }
 
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             // Make API call to doctor login endpoint
-            const response = await fetch(`${baseURL}/doctor/login`, {
+            const response = await fetch(`${baseURL}/api/dashboard/doctor/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Redirect to doctor dashboard
                 setTimeout(() => {
-                    window.location.href = './doctor.dashboard.html';
+                    window.location.href = './doctor-dashboard.html';
                 }, 2000);
             } else {
                 throw new Error(data.message || 'Login failed');

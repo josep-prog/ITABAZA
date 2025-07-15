@@ -1,12 +1,30 @@
 const { supabase } = require("../config/db");
+const bcrypt = require('bcrypt');
 
 // Supabase table name
 const TABLE_NAME = 'doctors';
 
 // Doctor model functions
 const DoctorModel = {
+  // Hash password
+  async hashPassword(password) {
+    const saltRounds = 10;
+    return await bcrypt.hash(password, saltRounds);
+  },
+
+  // Compare password
+  async comparePassword(password, hashedPassword) {
+    return await bcrypt.compare(password, hashedPassword);
+  },
+
   // Create a new doctor
   async create(doctorData) {
+    // Hash password if provided
+    if (doctorData.password) {
+      doctorData.password_hash = await this.hashPassword(doctorData.password);
+      delete doctorData.password; // Remove plain password
+    }
+    
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .insert([doctorData])
