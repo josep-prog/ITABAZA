@@ -1,15 +1,11 @@
 {
-  "name": "frontend",
+  "name": "itaba-frontend",
   "version": "1.0.0",
-  "main": "sw.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "generate-pwa-assets": "pwa-assets-generator --preset minimal-2023 public/logo.svg"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@capacitor/android": "^7.4.2"
-  },
-  "description": ""
+  "devDependencies": {
+    "@vite-pwa/assets-generator": "^1.0.0"
+  }
 }
+

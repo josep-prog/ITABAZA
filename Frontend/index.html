@@ -14,6 +14,10 @@
     <link rel="stylesheet" href="./css/all.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#3367D6">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
+
     <script type="module" src="app.js"></script>
 
 </head>
@@ -33,19 +37,14 @@
             </video> -->
         </div>
     </section>
-<<<<<<< HEAD
 <a href="https://github.com/Esther447/ITABAZA/releases/download/v1.0.0/app-release.apk" download class="download-button">
   Download Android App
 </a>
-
-
-=======
     <div class="center-container">
   <a href="https://github.com/Esther447/ITABAZA/releases/latest/download/app-release.apk" download class="download-button">
     📲 Download ITABAZA App
   </a>
 </div>
->>>>>>> 874208e23599682dec985f47b06677fdec0b7de4
     <section class="land-sections">
         <div id="feature-cont">
             <div data-aos="fade-down" data-aos-duration="800" class="feature-card">
@@ -258,12 +257,16 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 
   // Register the service worker
+ <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then((reg) => console.log('Service Worker registered'))
-      .catch((err) => console.log('Service Worker registration failed:', err));
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('Service Worker registered'))
+        .catch((error) => console.log('Service Worker registration failed:', error));
+    });
   }
 </script>
+
 
 </body>
 
