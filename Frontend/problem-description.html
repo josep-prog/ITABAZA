@@ -858,11 +858,16 @@
         function loadAppointmentSummary() {
             const docObj = JSON.parse(localStorage.getItem('docObj'));
             const patientData = JSON.parse(localStorage.getItem('patientData'));
+            const appointmentType = localStorage.getItem('appointmentType') || 'in-person';
             
             if (!docObj || !patientData) {
                 window.location.href = 'book.appointment.html';
                 return;
             }
+            
+            const appointmentTypeText = appointmentType === 'video' ? 'Video Call Appointment' : 'In-Person Appointment';
+            const appointmentIcon = appointmentType === 'video' ? 'fas fa-video' : 'fas fa-user-md';
+            const appointmentColor = appointmentType === 'video' ? '#007bff' : '#28a745';
             
             const summaryHTML = `
                 <div class="summary-item">
@@ -872,6 +877,12 @@
                 <div class="summary-item">
                     <span class="summary-label">Department:</span>
                     <span class="summary-value">${docObj.dept.replace('Department: ', '')}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Appointment Type:</span>
+                    <span class="summary-value" style="color: ${appointmentColor}">
+                        <i class="${appointmentIcon} me-1"></i>${appointmentTypeText}
+                    </span>
                 </div>
                 <div class="summary-item">
                     <span class="summary-label">Patient:</span>

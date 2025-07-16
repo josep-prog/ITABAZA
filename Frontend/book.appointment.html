@@ -219,6 +219,9 @@
                         e.preventDefault();
                         alert('Please log in to book an appointment.');
                         window.location.href = 'login.html';
+                    } else {
+                        // Set appointment type to in-person
+                        localStorage.setItem('appointmentType', 'in-person');
                     }
                 });
             }
@@ -227,7 +230,21 @@
                     alert('Please log in to book an appointment.');
                     window.location.href = 'login.html';
                 } else {
-                    window.location.href = 'video-call-appointment.html';
+                    // Set appointment type to video and go directly to patient details
+                    localStorage.setItem('appointmentType', 'video');
+                    
+                    // Create a default doctor object for video call (since it's virtual)
+                    const defaultVideoDoctor = {
+                        name: 'Dr. Video Consultation',
+                        dept: 'Virtual Consultation',
+                        exp: 'Available 24/7',
+                        qual: 'Video Call Specialist',
+                        img: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjMDA3YmZmIi8+PHJlY3QgeD0iMzAiIHk9IjUwIiB3aWR0aD0iODAiIGhlaWdodD0iNTAiIHJ4PSI1IiBmaWxsPSJ3aGl0ZSIvPjxjaXJjbGUgY3g9IjYwIiBjeT0iNzAiIHI9IjEwIiBmaWxsPSIjMDA3YmZmIi8+PGNpcmNsZSBjeD0iMTAwIiBjeT0iNzAiIHI9IjEwIiBmaWxsPSIjMDA3YmZmIi8+PHJlY3QgeD0iNTAiIHk9IjgwIiB3aWR0aD0iNDAiIGhlaWdodD0iNSIgcng9IjIiIGZpbGw9IiMwMDdiZmYiLz48L3N2Zz4K',
+                        docID: 'video-call-doctor'
+                    };
+                    
+                    localStorage.setItem('docObj', JSON.stringify(defaultVideoDoctor));
+                    window.location.href = 'patient_details.html';
                 }
             });
         });
