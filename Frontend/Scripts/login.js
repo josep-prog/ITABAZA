@@ -32,7 +32,12 @@ form.addEventListener("submit",async (e)=>{
             if (data.id) {
                 sessionStorage.setItem("userId", data.id);
                 localStorage.setItem("userId", data.id);
-            } else if (data.email) {
+            }
+            if (data.email) {
+                sessionStorage.setItem("userEmail", data.email);
+                localStorage.setItem("userEmail", data.email);
+            }
+            if (!data.id && data.email) {
                 // Fallback: fetch user profile to get userId
                 fetch(baseURL+"/user/profile", {
                     method: "GET",
@@ -46,6 +51,10 @@ form.addEventListener("submit",async (e)=>{
                     if (profile && profile.id) {
                         sessionStorage.setItem("userId", profile.id);
                         localStorage.setItem("userId", profile.id);
+                    }
+                    if (profile && profile.email) {
+                        sessionStorage.setItem("userEmail", profile.email);
+                        localStorage.setItem("userEmail", profile.email);
                     }
                 });
             }

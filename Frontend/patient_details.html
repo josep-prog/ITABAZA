@@ -14,8 +14,8 @@
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-    <title>Patient Details - Medistar</title>
-    <link rel="icon" href="./Files/Medistar-logo-crop.jpeg">
+    <title>Patient Details - iTABAZA</title>
+    <link rel="icon" href="./Files/iTABAZA-logo.png">
     <style>
         .step-indicator {
             display: flex;
@@ -83,19 +83,24 @@
             right: 15px;
             padding: 8px 16px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .badge-video {
-            background: linear-gradient(45deg, #007bff, #6610f2);
-            color: white;
+            background: linear-gradient(45deg, #007bff, #6610f2) !important;
+            color: white !important;
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
         }
         
         .badge-inperson {
-            background: linear-gradient(45deg, #28a745, #20c997);
-            color: white;
+            background: linear-gradient(45deg, #28a745, #20c997) !important;
+            color: white !important;
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
         }
         
         @media (max-width: 768px) {
@@ -270,10 +275,12 @@
             const badge = document.getElementById('appointment-type-badge');
             if (appointmentType === 'video') {
                 badge.className = 'appointment-type-badge badge-video';
-                badge.innerHTML = '<i class="fas fa-video me-1"></i>Video Call';
+                badge.innerHTML = '<i class="fas fa-video me-1"></i>Video Call Appointment';
+                badge.style.background = 'linear-gradient(45deg, #007bff, #6610f2)';
             } else {
                 badge.className = 'appointment-type-badge badge-inperson';
-                badge.innerHTML = '<i class="fas fa-user-md me-1"></i>In-Person';
+                badge.innerHTML = '<i class="fas fa-user-md me-1"></i>In-Person Appointment';
+                badge.style.background = 'linear-gradient(45deg, #28a745, #20c997)';
             }
             
             // Pre-fill form with user data if available

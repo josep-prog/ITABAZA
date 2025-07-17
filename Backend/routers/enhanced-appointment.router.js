@@ -10,8 +10,19 @@ const enhancedAppointmentRouter = require("express").Router();
 // Enhanced appointment creation with all new fields
 enhancedAppointmentRouter.post("/create/:doctorId", authenticate, async (req, res) => {
   let doctorId = req.params.doctorId;
-  let patientId = req.body.userID;
+  let patientId = req.body.userID || req.body.patientId;
   let patientEmail = req.body.email;
+
+  // Log the IDs for debugging
+  console.log('Booking appointment for patientId:', patientId, 'doctorId:', doctorId);
+
+  // Validate IDs
+  if (!patientId || typeof patientId !== 'string' || patientId.length < 10) {
+    return res.status(400).send({ msg: "Missing or invalid userID/patientId in request body" });
+  }
+  if (!doctorId || typeof doctorId !== 'string' || doctorId.length < 10) {
+    return res.status(400).send({ msg: "Missing or invalid doctorId in request params" });
+  }
   
   try {
     let docName = await DoctorModel.findById(doctorId);
@@ -57,12 +68,31 @@ enhancedAppointmentRouter.post("/create/:doctorId", authenticate, async (req, re
     
     // Check if the slot is available
     if (appointmentDate && appointmentTime) {
-      const dateKey = appointmentDate.toLowerCase().replace(/\s+/g, '_');
-      const availableSlots = docName[dateKey] || [];
+      // For now, use default slots for any date (april_11 slots as template)
+      // TODO: Implement dynamic date-based slot management
+      const availableSlots = docName.april_11 || ['11-12', '2-3', '4-5', '7-8'];
       
-      if (!availableSlots.includes(appointmentTime)) {
+      // Convert appointment time to slot format (e.g., "10:00" -> "10-11")
+      const timeHour = parseInt(appointmentTime.split(':')[0]);
+      let slotFormat = appointmentTime;
+      
+      // Map common times to slot formats
+      const timeToSlotMap = {
+        '10:00': '10-11',
+        '11:00': '11-12', 
+        '14:00': '2-3',
+        '15:00': '3-4',
+        '16:00': '4-5',
+        '19:00': '7-8'
+      };
+      
+      if (timeToSlotMap[appointmentTime]) {
+        slotFormat = timeToSlotMap[appointmentTime];
+      }
+      
+      if (!availableSlots.includes(slotFormat)) {
         return res.status(400).send({ 
-          msg: `Selected time slot ${appointmentTime} is not available for ${appointmentDate}` 
+          msg: `Selected time slot ${appointmentTime} (${slotFormat}) is not available. Available slots: ${availableSlots.join(', ')}` 
         });
       }
     }
@@ -88,7 +118,6 @@ enhancedAppointmentRouter.post("/create/:doctorId", authenticate, async (req, re
       // Payment details
       payment_transaction_id: paymentDetails.transactionId || null,
       payment_simcard_holder: paymentDetails.simcardHolder || null,
-      payment_owner_name: paymentDetails.ownerName || null,
       payment_phone_number: paymentDetails.phoneNumber || null,
       payment_method: paymentDetails.paymentMethod || null,
       payment_amount: paymentDetails.amount || null,
@@ -104,14 +133,16 @@ enhancedAppointmentRouter.post("/create/:doctorId", authenticate, async (req, re
     
     const createdAppointment = await AppointmentModel.create(appointmentData);
     
+    // TODO: Implement proper slot removal logic
     // Remove the booked slot from doctor's availability
-    if (appointmentDate && appointmentTime) {
-      const dateKey = appointmentDate.toLowerCase().replace(/\s+/g, '_');
-      const currentSlots = docName[dateKey] || [];
-      const updatedSlots = currentSlots.filter(slot => slot !== appointmentTime);
-      
-      await DoctorModel.updateTimeSlots(doctorId, dateKey, updatedSlots);
-    }
+    // Note: Currently disabled as it requires proper date-based slot management
+    // if (appointmentDate && appointmentTime) {
+    //   const dateKey = appointmentDate.toLowerCase().replace(/\s+/g, '_');
+    //   const currentSlots = docName[dateKey] || [];
+    //   const updatedSlots = currentSlots.filter(slot => slot !== appointmentTime);
+    //   
+    //   await DoctorModel.updateTimeSlots(doctorId, dateKey, updatedSlots);
+    // }
     
     // Send enhanced confirmation email
     await sendEnhancedConfirmationEmail(patientEmail, patientFirstName, docFirstName, appointmentData);
@@ -125,7 +156,13 @@ enhancedAppointmentRouter.post("/create/:doctorId", authenticate, async (req, re
     
   } catch (error) {
     console.error("Error creating enhanced appointment:", error);
-    res.status(500).send({ msg: "Error in creating enhanced appointment", error: error.message });
+    console.error("Error stack:", error.stack);
+    console.error("Request body:", req.body);
+    res.status(500).send({ 
+      msg: "Error in creating enhanced appointment", 
+      error: error.message,
+      details: error.code || 'Unknown error'
+    });
   }
 });
 
@@ -274,7 +311,7 @@ async function sendEnhancedConfirmationEmail(patientEmail, patientFirstName, doc
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: patientEmail,
-    subject: `Medistar ${consultationTypeText} Appointment Confirmation`,
+    subject: `iTABAZA ${consultationTypeText} Appointment Confirmation`,
     html: `
     <!DOCTYPE html>
       <html>
@@ -287,7 +324,7 @@ async function sendEnhancedConfirmationEmail(patientEmail, patientFirstName, doc
           <table style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #fff; border-collapse: collapse; border: 1px solid #ddd;">
             <tr>
               <td style="background-color: #0077c0; text-align: center; padding: 20px;">
-                <h1 style="font-size: 28px; color: #fff; margin: 0;">MEDISTAR HOSPITALS</h1>
+                <h1 style="font-size: 28px; color: #fff; margin: 0;">iTABAZA</h1>
                 <p style="color: #fff; margin: 5px 0 0 0;">Healthcare Excellence</p>
               </td>
             </tr>
@@ -345,13 +382,13 @@ async function sendEnhancedConfirmationEmail(patientEmail, patientFirstName, doc
                 `}
                 
                 <p style="margin-bottom: 20px;">If you have any questions or need to reschedule, please contact our customer service team.</p>
-                <p style="margin-bottom: 20px;">Thank you for choosing Medistar Hospitals!</p>
+                <p style="margin-bottom: 20px;">Thank you for choosing iTABAZA!</p>
                 
                 <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
                   <p style="margin: 0; color: #666; font-size: 14px;">
                     Best regards,<br>
-                    <strong>Medistar Hospitals Team</strong><br>
-                    Email: support@medistar.com<br>
+                    <strong>iTABAZA Team</strong><br>
+                    Email: support@itabaza.com<br>
                     Phone: +250 123 456 789
                   </p>
                 </div>

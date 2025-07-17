@@ -1,0 +1,11 @@
+{
+  "name": "itaba-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "generate-pwa-assets": "pwa-assets-generator --preset minimal-2023 public/logo.svg"
+  },
+  "devDependencies": {
+    "@vite-pwa/assets-generator": "^1.0.0"
+  }
+}
+

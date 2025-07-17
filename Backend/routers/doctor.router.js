@@ -28,6 +28,7 @@ doctorRouter.post("/addDoctor", async (req, res) => {
   let {
     doctorName,
     email,
+    password,
     qualifications,
     experience,
     phoneNo,
@@ -39,9 +40,15 @@ doctorRouter.post("/addDoctor", async (req, res) => {
   } = req.body;
   
   try {
+    // Validate required fields
+    if (!password) {
+      return res.status(400).send({ msg: "Password is required for doctor account" });
+    }
+    
     const doctorData = {
       doctor_name: doctorName,
       email,
+      password, // This will be hashed in the model
       qualifications,
       experience,
       phone_no: phoneNo,
@@ -187,24 +194,221 @@ doctorRouter.patch("/isAvailable/:doctorId", async (req, res) => {
   }
 });
 
-// Real-time doctor updates
-doctorRouter.get("/realtime", async (req, res) => {
+// Doctor login endpoint
+doctorRouter.post("/login", async (req, res) => {
   try {
-    const { supabase } = require("../config/db");
-    
-    const subscription = supabase
-      .channel('doctors_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'doctors' }, 
-        (payload) => {
-          console.log('Doctor change:', payload);
-        }
-      )
-      .subscribe();
+    const { email, password } = req.body;
 
-    res.json({ message: "Real-time doctor subscription set up" });
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Email and password are required" 
+      });
+    }
+
+    // Find doctor by email
+    const doctor = await DoctorModel.findByEmail(email);
+    
+    if (!doctor) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid email or password" 
+      });
+    }
+
+    // Check if doctor is approved and available
+    if (!doctor.status) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Doctor account is pending approval" 
+      });
+    }
+
+    // Verify password
+    if (!doctor.password_hash) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Doctor account needs password setup. Contact admin." 
+      });
+    }
+    
+    const isPasswordValid = await DoctorModel.comparePassword(password, doctor.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid email or password" 
+      });
+    }
+    
+    // Generate JWT token
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign(
+      { 
+        id: doctor.id, 
+        email: doctor.email, 
+        type: 'doctor' 
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+    
+    res.json({
+      success: true,
+      message: "Login successful",
+      token: token,
+      doctor: {
+        id: doctor.id,
+        doctor_name: doctor.doctor_name,
+        email: doctor.email,
+        qualifications: doctor.qualifications,
+        experience: doctor.experience,
+        city: doctor.city,
+        department_id: doctor.department_id,
+        image: doctor.image
+      }
+    });
+    
   } catch (error) {
-    res.status(500).send({ msg: "Error setting up real-time", error: error.message });
+    console.error("Doctor login error:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Internal server error" 
+    });
+  }
+});
+
+// Middleware to verify doctor authentication
+const verifyDoctorAuth = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'No token provided' });
+    }
+
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    
+    if (decoded.type !== 'doctor') {
+      return res.status(403).json({ success: false, message: 'Invalid token type' });
+    }
+
+    req.doctor = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: 'Invalid token' });
+  }
+};
+
+// Get appointments for a specific doctor (with authentication)
+doctorRouter.get("/appointments/:doctorId", verifyDoctorAuth, async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    
+    // Verify the doctor can only access their own appointments
+    // Convert both to strings for comparison
+    if (String(req.doctor.id) !== String(doctorId)) {
+      console.log(`Access denied: Doctor ID ${req.doctor.id} trying to access appointments for ${doctorId}`);
+      return res.status(403).json({ 
+        success: false, 
+        message: "You can only access your own appointments" 
+      });
+    }
+    
+    // Import appointment model
+    const { AppointmentModel } = require("../models/appointment.model");
+    
+    // Get appointments for this doctor
+    const appointments = await AppointmentModel.findByDoctorId(doctorId);
+    
+    res.json({
+      success: true,
+      total: appointments.length,
+      appointments: appointments
+    });
+    
+  } catch (error) {
+    console.error("Error getting doctor appointments:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching appointments" 
+    });
+  }
+});
+
+// Get doctor dashboard statistics
+doctorRouter.get("/stats/:doctorId", async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    
+    // Import appointment model
+    const { AppointmentModel } = require("../models/appointment.model");
+    
+    // Get all appointments for this doctor
+    const appointments = await AppointmentModel.findByDoctorId(doctorId);
+    
+    // Calculate statistics
+    const totalAppointments = appointments.length;
+    const pendingAppointments = appointments.filter(app => !app.status).length;
+    const completedAppointments = appointments.filter(app => app.status).length;
+    
+    // Get today's appointments
+    const today = new Date().toISOString().split('T')[0];
+    const todayAppointments = appointments.filter(app => 
+      app.appointment_date === today
+    ).length;
+    
+    // Calculate unique patients
+    const uniquePatients = new Set(appointments.map(app => app.patient_id)).size;
+    
+    // Calculate revenue (if payment_amount exists)
+    const totalRevenue = appointments
+      .filter(app => app.payment_status && app.payment_amount)
+      .reduce((sum, app) => sum + parseFloat(app.payment_amount || 0), 0);
+    
+    res.json({
+      success: true,
+      stats: {
+        totalAppointments,
+        pendingAppointments,
+        completedAppointments,
+        todayAppointments,
+        uniquePatients,
+        totalRevenue: totalRevenue.toFixed(2)
+      }
+    });
+    
+  } catch (error) {
+    console.error("Error getting doctor stats:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching statistics" 
+    });
+  }
+});
+
+// Alternative route without authentication for testing
+doctorRouter.get("/appointments-test/:doctorId", async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    
+    // Import appointment model
+    const { AppointmentModel } = require("../models/appointment.model");
+    
+    // Get appointments for this doctor
+    const appointments = await AppointmentModel.findByDoctorId(doctorId);
+    
+    res.json({
+      success: true,
+      total: appointments.length,
+      appointments: appointments
+    });
+    
+  } catch (error) {
+    console.error("Error getting doctor appointments:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Error fetching appointments" 
+    });
   }
 });
 

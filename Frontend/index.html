@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medistar</title>
     <link rel="icon" href="./Files/Medistar-logo-crop.jpeg">
+    <link rel="icon" type="image/x-icon" href="./Files/favicon.ico">
     <link rel="stylesheet" href="./Styles/land.css">
     <link rel="stylesheet" href="./Styles/nav.css">
     <link rel="stylesheet" href="./Styles/footer.css">
@@ -13,7 +14,16 @@
     <link rel="stylesheet" href="./css/all.css">
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<<<<<<< HEAD
     <script type="module" src="./Scripts/navbar.js"></script>
+=======
+    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#3367D6">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
+
+    <script type="module" src="app.js"></script>
+>>>>>>> cddc10ed48f520bae247a21eb29febc2e3819f0e
 
 </head>
 
@@ -32,7 +42,17 @@
             </video> -->
         </div>
     </section>
-
+<<<<<<< HEAD
+<a href="https://github.com/Esther447/ITABAZA/releases/download/v1.0.0/app-release.apk" download class="download-button">
+  Download Android App
+</a>
+=======
+>>>>>>> c8f447048475fd2f73e884f15fe1455b16a1495f
+    <div class="center-container">
+  <a href="https://github.com/Esther447/ITABAZA/releases/latest/download/app-release.apk" download class="download-button">
+    📲 Download ITABAZA App
+  </a>
+</div>
     <section class="land-sections">
         <div id="feature-cont">
             <div data-aos="fade-down" data-aos-duration="800" class="feature-card">
@@ -213,8 +233,51 @@
     <script>
       AOS.init();
     </script>
-</body>
+    <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service worker registered'))
+      .catch(err => console.log('Service worker not registered', err));
+  }
+</script>
+<script>
+    if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js');
+}
 
+let deferredPrompt;
+const installBtn = document.getElementById('installBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = 'block';
+
+  installBtn.addEventListener('click', () => {
+    installBtn.style.display = 'none';
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choice) => {
+      if (choice.outcome === 'accepted') {
+        console.log('✅ User accepted install');
+      } else {
+        console.log('❌ User dismissed install');
+      }
+      deferredPrompt = null;
+    });
+  });
+});
+
+
+  // Register the service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('Service Worker registered'))
+        .catch((error) => console.log('Service Worker registration failed:', error));
+    });
+  }
+
+</script>
 <script type="module" src="./Scripts/footer.js"></script>
-
+</body>
 </html>

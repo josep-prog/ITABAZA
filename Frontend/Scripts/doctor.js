@@ -30,13 +30,23 @@ let depObj = {
     "10": "Cardiology"
 }
 
+// Enhanced department mapping with UUID support
+const uuidDepartmentMap = {
+    'dfae69ef-60b3-49eb-8d9c-76e682e1ebd3': 'Cardiology',
+    '75e9de1c-b357-488d-a458-8a8e993c26f8': 'Cardiology',
+    '8441a6af-ccb2-4d44-9ec4-4a79256ead3c': 'Orthopedics',
+    'dd90f89e-fdb8-4a65-b91c-a66864d0e49f': 'Neurology',
+    '5b1a1421-37a2-4706-805b-59c74e6d42cc': 'Pediatrics',
+    // Add more UUID mappings as needed
+};
+
 // Function to get department name with fallback
 function getDepartmentName(departmentId) {
-    if (!departmentId) return 'Unknown Department';
+    if (!departmentId) return 'General Medicine';
     
-    // Handle the specific UUID department ID found in the database
-    if (departmentId === 'dfae69ef-60b3-49eb-8d9c-76e682e1ebd3') {
-        return 'Cardiology'; // Based on the qualifications showing "cardilogy"
+    // Handle UUID department IDs
+    if (uuidDepartmentMap[departmentId]) {
+        return uuidDepartmentMap[departmentId];
     }
     
     // Try exact match first
@@ -55,12 +65,33 @@ function getDepartmentName(departmentId) {
     // Try converting to number if it's a string
     if (typeof departmentId === 'string') {
         const numId = parseInt(departmentId);
-        if (depObj[numId]) {
+        if (!isNaN(numId) && depObj[numId]) {
             return depObj[numId];
         }
     }
     
-    return `Unknown Department (ID: ${departmentId})`;
+    // Fallback: try to guess from doctor qualifications or use General Medicine
+    return 'General Medicine';
+}
+
+// Function to intelligently guess department from qualifications
+function guessDepartmentFromQualifications(qualifications) {
+    if (!qualifications) return 'General Medicine';
+    
+    const qual = qualifications.toLowerCase();
+    
+    if (qual.includes('cardio') || qual.includes('heart')) return 'Cardiology';
+    if (qual.includes('neuro') || qual.includes('brain')) return 'Neurology';
+    if (qual.includes('ortho') || qual.includes('bone') || qual.includes('joint')) return 'Orthopedics';
+    if (qual.includes('pediatr') || qual.includes('child')) return 'Pediatrics';
+    if (qual.includes('dermat') || qual.includes('skin')) return 'Dermatology';
+    if (qual.includes('dental') || qual.includes('teeth')) return 'Dental';
+    if (qual.includes('gastro') || qual.includes('stomach')) return 'Gastroenterology';
+    if (qual.includes('gynec') || qual.includes('women')) return 'Gynaecology';
+    if (qual.includes('ent') || qual.includes('ear') || qual.includes('nose') || qual.includes('throat')) return 'ENT';
+    if (qual.includes('ayurveda') || qual.includes('alternative')) return 'Ayurveda';
+    
+    return 'General Medicine';
 }
 
 // Function to validate and get safe image URL
@@ -204,7 +235,11 @@ function renderdata(arr) {
             console.warn('Invalid doctor data:', elem);
             return '';
         }
-        const departmentName = getDepartmentName(elem.department_id);
+        // Try to get department name, fall back to guessing from qualifications
+        let departmentName = getDepartmentName(elem.department_id);
+        if (departmentName === 'General Medicine' && elem.qualifications) {
+            departmentName = guessDepartmentFromQualifications(elem.qualifications);
+        }
         const isAvailable = elem.status && elem.is_available;
 
         if (isRowView) {
