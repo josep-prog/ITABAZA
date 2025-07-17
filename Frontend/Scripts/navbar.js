@@ -13,6 +13,8 @@ document.querySelector("#navbar").innerHTML = `
         <li id="find-doc">Find Doctors</li>
         <li id="appointment-link">Appointment</li>
         <li id="security-link">Security & Help</li>
+        <li id="ctt">Chat</li>
+
     </div>
     <div data-aos="zoom-out" data-aos-duration="1000" id="nav-user-details">
         <button id="nav-login">Login</button>
@@ -28,6 +30,7 @@ const homeLink=document.getElementById("home-link");
 const appointmentLink=document.getElementById("appointment-link");
 const find_doc=document.getElementById("find-doc");
 const securityLink=document.getElementById("security-link");
+const ctt=document.getElementById("ctt");
 
 let loginbtn=document.getElementById("nav-login");
 let signupbtn=document.getElementById("nav-reg");
@@ -74,6 +77,10 @@ find_doc.addEventListener("click",()=>{
 
 securityLink.addEventListener("click",()=>{
     window.location.href="./security.html";
+})
+
+ctt.addEventListener("click",()=>{
+    window.location.href="../chatroom/public/index.html";
 })
 
 const hamburger=document.getElementById("hamb");

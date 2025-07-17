@@ -39,6 +39,11 @@ app.get("/api/health", async (req, res) => {
   }
 });
 
+app.get('/', (req, res) => {
+  res.send('Server is up and running! 🚀');
+});
+
+
 app.listen(process.env.PORT || 8080, async () => {
   try {
     console.log("Connected to Supabase");

@@ -2,10 +2,17 @@ import { baseURL } from './baseURL.js';
     let form =document.querySelector("form");
 form.addEventListener("submit",async (e)=>{
     e.preventDefault();
-    let obj={
-        payload:document.getElementById("exampleFormControlInput1").value,
-        password:document.getElementById("exampleFormControlInput2").value
+    // let obj={
+    //     payload:document.getElementById("exampleFormControlInput1").value,
+    //     password:document.getElementById("exampleFormControlInput2").value
+    // }
+
+    let obj = {
+        email: document.getElementById("exampleFormControlInput1").value,
+        password: document.getElementById("exampleFormControlInput2").value
     }
+
+
     try {
         let res=await fetch(baseURL+"/user/signin",{
             method:"POST",

@@ -14,6 +14,9 @@
     <link rel="stylesheet" href="./Styles/doctorPage.css">
     <link rel="stylesheet" href="./Styles/responsive.css">
     <link rel="stylesheet" href="./Styles/footer.css"/>
+    
+    <link rel="stylesheet" href="./Styles/chat-widget.css">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
     <style>
         .appointment-header {
@@ -197,6 +200,28 @@
     <script>
       AOS.init();
     </script>
+
+        <!-- Chat Floating Button -->
+
+    <div id="chat-fab" class="chat-fab">
+    <i class="fas fa-comments"></i>
+    </div>
+
+    <!-- Chat Panel -->
+    <div id="chat-panel" class="chat-panel">
+    <div class="chat-header">
+        <span>Live Chat</span>
+        <button id="chat-close">&times;</button>
+    </div>
+    <div id="chat-messages" class="chat-messages"></div>
+    <div class="chat-input">
+        <input type="text" id="chat-input" placeholder="Type a message..." />
+        <button id="chat-send"><i class="fas fa-paper-plane"></i></button>
+    </div>
+    </div>
+    <script type="module" src="./Scripts/chat-widget.js"></script>
+    
+
 </body>
 <script type="module" src="./Scripts/navbar.js"></script>
 <script type="module" src="./Scripts/footer.js"></script>
