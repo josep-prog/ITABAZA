@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 async function fixUserPasswords() {
     try {
-        console.log('🔍 Checking for users with plain text passwords...');
+        console.log(' Checking for users with plain text passwords...');
         
         // Get all users
         const { data: users, error } = await supabase
@@ -11,11 +11,11 @@ async function fixUserPasswords() {
             .select('id, email, password, first_name, last_name');
         
         if (error) {
-            console.error('❌ Error fetching users:', error);
+            console.error(' Error fetching users:', error);
             return;
         }
         
-        console.log(`📊 Found ${users.length} users in database`);
+        console.log(` Found ${users.length} users in database`);
         
         let fixedCount = 0;
         
@@ -25,7 +25,7 @@ async function fixUserPasswords() {
                 const isAlreadyHashed = user.password.startsWith('$2b$');
                 
                 if (!isAlreadyHashed) {
-                    console.log(`🔧 Fixing password for user: ${user.email}`);
+                    console.log(` Fixing password for user: ${user.email}`);
                     
                     // Hash the plain text password
                     const hashedPassword = await bcrypt.hash(user.password, 5);
@@ -37,23 +37,23 @@ async function fixUserPasswords() {
                         .eq('id', user.id);
                     
                     if (updateError) {
-                        console.error(`❌ Error updating password for ${user.email}:`, updateError);
+                        console.error(` Error updating password for ${user.email}:`, updateError);
                     } else {
-                        console.log(`✅ Password fixed for ${user.email}`);
+                        console.log(` Password fixed for ${user.email}`);
                         fixedCount++;
                     }
                 } else {
-                    console.log(`✅ Password already hashed for ${user.email}`);
+                    console.log(` Password already hashed for ${user.email}`);
                 }
             } catch (err) {
-                console.error(`❌ Error processing user ${user.email}:`, err);
+                console.error(` Error processing user ${user.email}:`, err);
             }
         }
         
-        console.log(`\n🎉 Process completed! Fixed ${fixedCount} passwords.`);
+        console.log(`\n Process completed! Fixed ${fixedCount} passwords.`);
         
     } catch (err) {
-        console.error('❌ Unexpected error:', err);
+        console.error(' Unexpected error:', err);
     }
 }
 
