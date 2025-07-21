@@ -1,7 +1,7 @@
 const { supabase } = require('./config/db');
 const { AppointmentModel } = require('./models/appointment.model');
 
-console.log("🎯 Final test: Complete appointment booking flow...\n");
+console.log("Final test: Complete appointment booking flow...\n");
 
 async function testCompleteAppointmentFlow() {
   try {
@@ -19,19 +19,19 @@ async function testCompleteAppointmentFlow() {
       .limit(1);
     
     if (!users.length || !doctors.length) {
-      console.log("❌ Missing test data");
+      console.log("Missing test data");
       return;
     }
 
     const testUser = users[0];
     const testDoctor = doctors[0];
     
-    console.log("✅ Test data ready:");
+    console.log("Test data ready:");
     console.log(`  - User: ${testUser.first_name} ${testUser.last_name}`);
     console.log(`  - Doctor: ${testDoctor.doctor_name}`);
 
     // Test complete appointment creation with payment
-    console.log("\n📅 Creating appointment with payment details...");
+    console.log("\n Creating appointment with payment details...");
     
     const appointmentData = {
       patient_id: testUser.id,
@@ -62,7 +62,7 @@ async function testCompleteAppointmentFlow() {
     const createdAppointment = await AppointmentModel.create(appointmentData);
     
     if (createdAppointment && createdAppointment.id) {
-      console.log("🎉 SUCCESS! Appointment created with all details!");
+      console.log(" SUCCESS! Appointment created with all details!");
       console.log(`  - Appointment ID: ${createdAppointment.id}`);
       console.log(`  - Payment Status: ${createdAppointment.payment_status}`);
       console.log(`  - Payment Amount: ${createdAppointment.payment_amount} ${createdAppointment.payment_currency}`);
@@ -71,42 +71,42 @@ async function testCompleteAppointmentFlow() {
       console.log(`  - Symptoms: ${createdAppointment.symptoms}`);
       
       // Test retrieving the appointment
-      console.log("\n🔍 Testing appointment retrieval...");
+      console.log("\n Testing appointment retrieval...");
       const retrievedAppointment = await AppointmentModel.findById(createdAppointment.id);
       
       if (retrievedAppointment) {
-        console.log("✅ Appointment retrieval successful!");
+        console.log(" Appointment retrieval successful!");
         console.log(`  - Retrieved: ${retrievedAppointment.patient_first_name} → ${retrievedAppointment.doc_first_name}`);
       } else {
-        console.log("❌ Failed to retrieve appointment");
+        console.log(" Failed to retrieve appointment");
       }
       
       // Test updating payment status
-      console.log("\n💳 Testing payment status update...");
+      console.log("\n Testing payment status update...");
       const updatedAppointment = await AppointmentModel.update(createdAppointment.id, {
         payment_status: true,
         payment_amount: 9000
       });
       
       if (updatedAppointment) {
-        console.log("✅ Payment update successful!");
+        console.log(" Payment update successful!");
         console.log(`  - New amount: ${updatedAppointment.payment_amount}`);
       }
       
       // Clean up
-      console.log("\n🧹 Cleaning up test appointment...");
+      console.log("\n Cleaning up test appointment...");
       await AppointmentModel.delete(createdAppointment.id);
-      console.log("✅ Cleanup successful");
+      console.log(" Cleanup successful");
       
-      console.log("\n🎉 ALL TESTS PASSED!");
-      console.log("\n✅ The appointment booking system is fully functional:");
+      console.log("\n ALL TESTS PASSED!");
+      console.log("\n The appointment booking system is fully functional:");
       console.log("  ✓ Appointments can be created with payment details");
       console.log("  ✓ Appointments can be retrieved by ID"); 
       console.log("  ✓ Payment status can be updated");
       console.log("  ✓ Appointments can be deleted");
       console.log("  ✓ All enhanced fields (symptoms, medical history, etc.) are working");
       
-      console.log("\n🚀 Next steps:");
+      console.log("\n Next steps:");
       console.log("  1. Start your backend server: npm run server");
       console.log("  2. Your frontend should now successfully create appointments");
       console.log("  3. Ensure users are authenticated when booking");
@@ -115,12 +115,12 @@ async function testCompleteAppointmentFlow() {
       return true;
       
     } else {
-      console.log("❌ Appointment creation failed");
+      console.log(" Appointment creation failed");
       return false;
     }
     
   } catch (error) {
-    console.error("💥 Test failed:", error.message);
+    console.error(" Test failed:", error.message);
     return false;
   }
 }
