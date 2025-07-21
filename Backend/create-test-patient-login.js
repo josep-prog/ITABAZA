@@ -1,7 +1,7 @@
 const { supabase } = require('./config/db');
 
 async function createTestPatientLogin() {
-    console.log('🔧 Creating test patient login data...\n');
+    console.log(' Creating test patient login data...\n');
     
     try {
         // Get a real user from the database
@@ -11,12 +11,12 @@ async function createTestPatientLogin() {
             .limit(1);
         
         if (userError || !users || users.length === 0) {
-            console.log('❌ No users found in database');
+            console.log(' No users found in database');
             return;
         }
         
         const testUser = users[0];
-        console.log('✅ Found test user:', testUser);
+        console.log(' Found test user:', testUser);
         
         // Create a mock patient login session
         const patientInfo = {
@@ -29,7 +29,7 @@ async function createTestPatientLogin() {
         
         const patientToken = 'test_patient_token_' + Date.now();
         
-        console.log('\n📝 Test patient login data:');
+        console.log('\n Test patient login data:');
         console.log('Patient Info:', JSON.stringify(patientInfo, null, 2));
         console.log('Patient Token:', patientToken);
         
@@ -98,9 +98,9 @@ async function createTestPatientLogin() {
                 sessionStorage.setItem('patientToken', patientToken);
                 
                 document.getElementById('status').innerHTML = 
-                    '<div class="success"><p>✅ Test login data set successfully!</p></div>';
+                    '<div class="success"><p> Test login data set successfully!</p></div>';
                 
-                console.log('✅ Patient login data set:', patientInfo);
+                console.log(' Patient login data set:', patientInfo);
             }
             
             function clearLogin() {
@@ -110,9 +110,9 @@ async function createTestPatientLogin() {
                 sessionStorage.removeItem('patientToken');
                 
                 document.getElementById('status').innerHTML = 
-                    '<div class="info"><p>🗑️ Login data cleared</p></div>';
+                    '<div class="info"><p> Login data cleared</p></div>';
                 
-                console.log('🗑️ Patient login data cleared');
+                console.log(' Patient login data cleared');
             }
             
             function openDashboard() {
@@ -136,15 +136,15 @@ async function createTestPatientLogin() {
         const htmlPath = path.join(__dirname, 'Frontend', 'test-patient-login.html');
         fs.writeFileSync(htmlPath, htmlContent);
         
-        console.log('\n✅ Test patient login HTML file created at:', htmlPath);
-        console.log('\n📋 Instructions:');
+        console.log('\n Test patient login HTML file created at:', htmlPath);
+        console.log('\n Instructions:');
         console.log('1. Open your browser and go to: http://localhost:3000/test-patient-login.html');
         console.log('2. Click "Setup Test Login" to set the patient login data');
         console.log('3. Click "Open Dashboard" to test the patient dashboard');
         console.log('4. Check the browser console for debugging information');
         
         // Also create some test documents for this patient
-        console.log('\n📄 Creating test documents...');
+        console.log('\n Creating test documents...');
         
         const { data: doctors } = await supabase
             .from('doctors')
@@ -199,16 +199,16 @@ async function createTestPatientLogin() {
                 .select();
             
             if (insertError) {
-                console.log('⚠️ Error creating test documents:', insertError);
+                console.log(' Error creating test documents:', insertError);
             } else {
-                console.log(`✅ Created ${insertedDocs.length} test documents`);
+                console.log(` Created ${insertedDocs.length} test documents`);
             }
         }
         
-        console.log('\n🎉 Test setup complete!');
+        console.log('\n Test setup complete!');
         
     } catch (error) {
-        console.error('❌ Error creating test patient login:', error);
+        console.error(' Error creating test patient login:', error);
     }
 }
 
