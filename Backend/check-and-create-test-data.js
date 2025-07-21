@@ -1,12 +1,12 @@
 const { supabase } = require('./config/db');
 const bcrypt = require('bcrypt');
 
-console.log("🔍 Checking for valid user and doctor records...\n");
+console.log("Checking for valid user and doctor records...\n");
 
 async function checkAndCreateTestData() {
   try {
     // Step 1: Check existing users
-    console.log("👥 Step 1: Checking existing users...");
+    console.log("Step 1: Checking existing users...");
     const { data: users, error: userError } = await supabase
       .from('users')
       .select('id, first_name, last_name, email, mobile')
@@ -23,7 +23,7 @@ async function checkAndCreateTestData() {
 
     // Create a test user if none exist
     if (!testUser) {
-      console.log("\n📝 Creating a test user...");
+      console.log("\nCreating a test user...");
       const hashedPassword = await bcrypt.hash('password123', 10);
       
       const { data: newUser, error: createUserError } = await supabase
@@ -39,16 +39,16 @@ async function checkAndCreateTestData() {
         .single();
       
       if (createUserError) {
-        console.log("❌ Failed to create test user:", createUserError.message);
+        console.log("Failed to create test user:", createUserError.message);
         return false;
       }
       
       testUser = newUser;
-      console.log("✅ Test user created:", testUser.first_name, testUser.last_name);
+      console.log("Test user created:", testUser.first_name, testUser.last_name);
     }
 
     // Step 2: Check existing departments
-    console.log("\n🏥 Step 2: Checking existing departments...");
+    console.log("\nStep 2: Checking existing departments...");
     const { data: departments, error: deptError } = await supabase
       .from('departments')
       .select('id, dept_name')
@@ -65,7 +65,7 @@ async function checkAndCreateTestData() {
 
     // Create a test department if none exist
     if (!testDepartment) {
-      console.log("\n📝 Creating a test department...");
+      console.log("\nCreating a test department...");
       const { data: newDept, error: createDeptError } = await supabase
         .from('departments')
         .insert([{
@@ -77,16 +77,16 @@ async function checkAndCreateTestData() {
         .single();
       
       if (createDeptError) {
-        console.log("❌ Failed to create test department:", createDeptError.message);
+        console.log("Failed to create test department:", createDeptError.message);
         return false;
       }
       
       testDepartment = newDept;
-      console.log("✅ Test department created:", testDepartment.dept_name);
+      console.log("Test department created:", testDepartment.dept_name);
     }
 
     // Step 3: Check existing doctors
-    console.log("\n👨‍⚕️ Step 3: Checking existing doctors...");
+    console.log("\nStep 3: Checking existing doctors...");
     const { data: doctors, error: doctorError } = await supabase
       .from('doctors')
       .select('id, doctor_name, email, qualifications, experience, phone_no, city, department_id, status, is_available')
@@ -103,7 +103,7 @@ async function checkAndCreateTestData() {
 
     // Create a test doctor if none exist or none are available
     if (!testDoctor) {
-      console.log("\n📝 Creating a test doctor...");
+      console.log("\nCreating a test doctor...");
       const { data: newDoctor, error: createDoctorError } = await supabase
         .from('doctors')
         .insert([{
@@ -126,16 +126,16 @@ async function checkAndCreateTestData() {
         .single();
       
       if (createDoctorError) {
-        console.log("❌ Failed to create test doctor:", createDoctorError.message);
+        console.log("Failed to create test doctor:", createDoctorError.message);
         return false;
       }
       
       testDoctor = newDoctor;
-      console.log("✅ Test doctor created:", testDoctor.doctor_name);
+      console.log("Test doctor created:", testDoctor.doctor_name);
     }
 
     // Step 4: Test appointment creation with real data
-    console.log("\n📅 Step 4: Testing appointment creation with valid data...");
+    console.log("\nStep 4: Testing appointment creation with valid data...");
     
     const { AppointmentModel } = require('./models/appointment.model');
     
@@ -165,12 +165,12 @@ async function checkAndCreateTestData() {
       patient_phone: testUser.mobile
     };
     
-    console.log("🧪 Creating test appointment with valid user and doctor...");
+    console.log("Creating test appointment with valid user and doctor...");
     const createdAppointment = await AppointmentModel.create(appointmentData);
     
     if (createdAppointment && createdAppointment.id) {
-      console.log("✅ SUCCESS! Appointment created successfully!");
-      console.log("📋 Appointment Details:");
+      console.log("SUCCESS! Appointment created successfully!");
+      console.log("Appointment Details:");
       console.log(`  - ID: ${createdAppointment.id}`);
       console.log(`  - Patient: ${createdAppointment.patient_first_name}`);
       console.log(`  - Doctor: ${createdAppointment.doc_first_name}`);
@@ -181,7 +181,7 @@ async function checkAndCreateTestData() {
       console.log(`  - Payment Amount: ${createdAppointment.payment_amount} ${createdAppointment.payment_currency}`);
       
       // Step 5: Verify appointment exists in database
-      console.log("\n🔍 Step 5: Verifying appointment in database...");
+      console.log("\n Step 5: Verifying appointment in database...");
       const { data: verifyAppointment, error: verifyError } = await supabase
         .from('appointments')
         .select('*')
@@ -189,25 +189,25 @@ async function checkAndCreateTestData() {
         .single();
       
       if (verifyError) {
-        console.log("❌ Failed to verify appointment:", verifyError.message);
+        console.log(" Failed to verify appointment:", verifyError.message);
       } else {
-        console.log("✅ Appointment verified in database!");
+        console.log(" Appointment verified in database!");
         console.log(`  - Found appointment with payment status: ${verifyAppointment.payment_status}`);
       }
       
       // Clean up test appointment
-      console.log("\n🧹 Cleaning up test appointment...");
+      console.log("\n Cleaning up test appointment...");
       await AppointmentModel.delete(createdAppointment.id);
-      console.log("✅ Test appointment cleaned up");
+      console.log(" Test appointment cleaned up");
       
       // Step 6: Summary and next steps
-      console.log("\n🎉 APPOINTMENT BOOKING SYSTEM IS WORKING CORRECTLY!");
-      console.log("\n📊 Summary of test data:");
+      console.log("\n APPOINTMENT BOOKING SYSTEM IS WORKING CORRECTLY!");
+      console.log("\n Summary of test data:");
       console.log(`  - Test User: ${testUser.first_name} ${testUser.last_name} (${testUser.email})`);
       console.log(`  - Test Doctor: ${testDoctor.doctor_name} (${testDoctor.email})`);
       console.log(`  - Test Department: ${testDepartment.dept_name}`);
       
-      console.log("\n✅ Next Steps:");
+      console.log("\n Next Steps:");
       console.log("1. Start your backend server: npm run server");
       console.log("2. Ensure your frontend is pointing to the correct backend URL");
       console.log("3. Make sure users are properly authenticated when booking appointments");
@@ -221,12 +221,12 @@ async function checkAndCreateTestData() {
       };
       
     } else {
-      console.log("❌ Appointment creation failed - no data returned");
+      console.log(" Appointment creation failed - no data returned");
       return false;
     }
     
   } catch (error) {
-    console.error("💥 Error during test data check/creation:", error);
+    console.error(" Error during test data check/creation:", error);
     return false;
   }
 }
@@ -234,10 +234,10 @@ async function checkAndCreateTestData() {
 // Run the test
 checkAndCreateTestData().then(result => {
   if (result && result.success) {
-    console.log("\n🚀 Ready to test appointment booking!");
+    console.log("\n Ready to test appointment booking!");
   } else {
-    console.log("\n❌ Test data setup failed. Please check the errors above.");
+    console.log("\n Test data setup failed. Please check the errors above.");
   }
 }).catch(error => {
-  console.error("💥 Script execution failed:", error);
+  console.error(" Script execution failed:", error);
 });
