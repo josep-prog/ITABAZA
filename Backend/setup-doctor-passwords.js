@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 async function setupDoctorPasswords() {
   try {
-    console.log("🔄 Setting up passwords for existing doctors...");
+    console.log(" Setting up passwords for existing doctors...");
     
     // Get all doctors
     const { data: doctors, error } = await supabase
@@ -11,22 +11,22 @@ async function setupDoctorPasswords() {
       .select('*');
       
     if (error) {
-      console.error("❌ Error fetching doctors:", error);
+      console.error(" Error fetching doctors:", error);
       return;
     }
     
-    console.log(`📋 Found ${doctors.length} doctors`);
+    console.log(` Found ${doctors.length} doctors`);
     
     // Default password for all doctors (you should change this in production)
     const defaultPassword = "doctor123";
     const hashedPassword = await bcrypt.hash(defaultPassword, 10);
     
     for (const doctor of doctors) {
-      console.log(`🔄 Processing doctor: ${doctor.doctor_name} (${doctor.email})`);
+      console.log(` Processing doctor: ${doctor.doctor_name} (${doctor.email})`);
       
       // Check if doctor already has a password_hash
       if (doctor.password_hash) {
-        console.log(`✅ Doctor ${doctor.doctor_name} already has a password`);
+        console.log(` Doctor ${doctor.doctor_name} already has a password`);
         continue;
       }
       
@@ -39,18 +39,18 @@ async function setupDoctorPasswords() {
         .eq('id', doctor.id);
         
       if (updateError) {
-        console.error(`❌ Error updating doctor ${doctor.doctor_name}:`, updateError);
+        console.error(` Error updating doctor ${doctor.doctor_name}:`, updateError);
       } else {
-        console.log(`✅ Updated password for doctor ${doctor.doctor_name}`);
+        console.log(` Updated password for doctor ${doctor.doctor_name}`);
       }
     }
     
-    console.log("✅ Doctor password setup completed!");
-    console.log(`ℹ️  Default password for all doctors: ${defaultPassword}`);
-    console.log("⚠️  Remember to ask doctors to change their passwords on first login");
+    console.log(" Doctor password setup completed!");
+    console.log(`  Default password for all doctors: ${defaultPassword}`);
+    console.log("  Remember to ask doctors to change their passwords on first login");
     
   } catch (error) {
-    console.error("❌ Error setting up doctor passwords:", error);
+    console.error(" Error setting up doctor passwords:", error);
   }
 }
 
