@@ -4,7 +4,7 @@ const path = require('path');
 
 async function executeClientDatabaseSQL() {
     try {
-        console.log('🔄 Starting database update...');
+        console.log(' Starting database update...');
         
         // Read the SQL file
         const sqlFilePath = path.join(__dirname, 'client-database.sql');
@@ -16,7 +16,7 @@ async function executeClientDatabaseSQL() {
             .map(cmd => cmd.trim())
             .filter(cmd => cmd.length > 0 && !cmd.startsWith('--'));
         
-        console.log(`📝 Found ${sqlCommands.length} SQL commands to execute`);
+        console.log(` Found ${sqlCommands.length} SQL commands to execute`);
         
         // Execute each command
         for (let i = 0; i < sqlCommands.length; i++) {
@@ -28,7 +28,7 @@ async function executeClientDatabaseSQL() {
             }
             
             try {
-                console.log(`⏳ Executing command ${i + 1}/${sqlCommands.length}...`);
+                console.log(` Executing command ${i + 1}/${sqlCommands.length}...`);
                 
                 // Execute the SQL command
                 const { data, error } = await supabase.rpc('exec_sql', {
@@ -37,7 +37,7 @@ async function executeClientDatabaseSQL() {
                 
                 if (error) {
                     // Try direct execution if RPC fails
-                    console.log(`⚠️  RPC failed, trying direct execution...`);
+                    console.log(`  RPC failed, trying direct execution...`);
                     
                     // For table creation, use the storage admin API
                     const { data: directData, error: directError } = await supabase
@@ -46,23 +46,23 @@ async function executeClientDatabaseSQL() {
                         .limit(1);
                     
                     if (directError) {
-                        console.error(`❌ Error executing command ${i + 1}:`, error);
+                        console.error(` Error executing command ${i + 1}:`, error);
                         continue;
                     }
                 }
                 
-                console.log(`✅ Command ${i + 1} executed successfully`);
+                console.log(` Command ${i + 1} executed successfully`);
                 
             } catch (cmdError) {
-                console.error(`❌ Error executing command ${i + 1}:`, cmdError.message);
+                console.error(` Error executing command ${i + 1}:`, cmdError.message);
                 // Continue with next command
             }
         }
         
-        console.log('🎉 Database update completed!');
+        console.log(' Database update completed!');
         
         // Verify tables were created
-        console.log('🔍 Verifying table creation...');
+        console.log(' Verifying table creation...');
         
         const tablesToCheck = ['documents', 'support_tickets', 'doctor_sessions', 'patient_sessions'];
         
@@ -74,24 +74,24 @@ async function executeClientDatabaseSQL() {
                     .limit(1);
                 
                 if (error) {
-                    console.log(`❌ Table '${tableName}' may not exist:`, error.message);
+                    console.log(` Table '${tableName}' may not exist:`, error.message);
                 } else {
-                    console.log(`✅ Table '${tableName}' verified successfully`);
+                    console.log(` Table '${tableName}' verified successfully`);
                 }
             } catch (verifyError) {
-                console.log(`❌ Error verifying table '${tableName}':`, verifyError.message);
+                console.log(` Error verifying table '${tableName}':`, verifyError.message);
             }
         }
         
     } catch (error) {
-        console.error('❌ Fatal error:', error);
+        console.error(' Fatal error:', error);
         process.exit(1);
     }
 }
 
 // Alternative approach using individual table creation
 async function createTablesIndividually() {
-    console.log('🔄 Creating tables individually...');
+    console.log(' Creating tables individually...');
     
     const tables = [
         {
@@ -156,7 +156,7 @@ async function createTablesIndividually() {
     
     for (const table of tables) {
         try {
-            console.log(`📝 Creating table: ${table.name}`);
+            console.log(` Creating table: ${table.name}`);
             
             // Use a more direct approach for table creation
             const { data, error } = await supabase
@@ -165,24 +165,24 @@ async function createTablesIndividually() {
                 .limit(1);
             
             if (error && error.message.includes('does not exist')) {
-                console.log(`⚠️  Table ${table.name} doesn't exist, attempting to create via SQL...`);
+                console.log(`  Table ${table.name} doesn't exist, attempting to create via SQL...`);
                 // Table doesn't exist, this is expected for new tables
-                console.log(`ℹ️  Table ${table.name} needs to be created manually in Supabase dashboard`);
+                console.log(`  Table ${table.name} needs to be created manually in Supabase dashboard`);
             } else if (error) {
-                console.log(`❌ Error checking table ${table.name}:`, error.message);
+                console.log(` Error checking table ${table.name}:`, error.message);
             } else {
-                console.log(`✅ Table ${table.name} already exists`);
+                console.log(` Table ${table.name} already exists`);
             }
             
         } catch (tableError) {
-            console.error(`❌ Error with table ${table.name}:`, tableError.message);
+            console.error(` Error with table ${table.name}:`, tableError.message);
         }
     }
 }
 
 // Main execution
 async function main() {
-    console.log('🚀 Starting database update process...');
+    console.log(' Starting database update process...');
     
     try {
         // Test connection first
@@ -192,17 +192,17 @@ async function main() {
             .limit(1);
         
         if (error) {
-            console.error('❌ Database connection failed:', error.message);
+            console.error(' Database connection failed:', error.message);
             return;
         }
         
-        console.log('✅ Database connection successful');
+        console.log(' Database connection successful');
         
         // Try individual table creation approach
         await createTablesIndividually();
         
     } catch (error) {
-        console.error('❌ Main execution error:', error);
+        console.error(' Main execution error:', error);
     }
 }
 
