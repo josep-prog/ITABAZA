@@ -4,7 +4,7 @@ const path = require('path');
 
 async function applyDoctorPasswordMigration() {
   try {
-    console.log("🔄 Applying doctor password migration...");
+    console.log("Applying doctor password migration...");
     
     // Read the migration SQL file
     const migrationSQL = fs.readFileSync(
@@ -24,9 +24,9 @@ async function applyDoctorPasswordMigration() {
         const { data, error } = await supabase.rpc('exec_sql', { sql_query: statement });
         
         if (error) {
-          console.log("⚠️  Non-critical error (might be expected):", error.message);
+          console.log("Non-critical error (might be expected):", error.message);
         } else {
-          console.log("✅ Statement executed successfully");
+          console.log("Statement executed successfully");
         }
       }
     }
@@ -38,9 +38,9 @@ async function applyDoctorPasswordMigration() {
       .limit(1);
       
     if (columnError) {
-      console.error("❌ Error checking doctors table:", columnError);
+      console.error("Error checking doctors table:", columnError);
     } else {
-      console.log("✅ Migration completed successfully");
+      console.log("Migration completed successfully");
       if (columns && columns.length > 0) {
         const hasPasswordHash = 'password_hash' in columns[0];
         console.log("password_hash column exists:", hasPasswordHash);
@@ -48,7 +48,7 @@ async function applyDoctorPasswordMigration() {
     }
     
   } catch (error) {
-    console.error("❌ Migration failed:", error.message);
+    console.error("Migration failed:", error.message);
   }
 }
 
