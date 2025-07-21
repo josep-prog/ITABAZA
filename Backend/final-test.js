@@ -2,10 +2,10 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 const { spawn } = require('child_process');
 
 async function finalTest() {
-    console.log('🔍 Final test with server logging...\n');
+    console.log(' Final test with server logging...\n');
     
     // Start the server with visible output
-    console.log('1️⃣ Starting server with logging...');
+    console.log(' Starting server with logging...');
     const server = spawn('node', ['index.js'], { 
         stdio: ['pipe', 'pipe', 'pipe']
     });
@@ -54,7 +54,7 @@ async function finalTest() {
         const doctorsData = await doctorsResponse.json();
         const testDoctor = doctorsData.doctor[0];
         
-        console.log('\n2️⃣ Making appointment request...');
+        console.log('\n Making appointment request...');
         console.log('User ID:', loginResult.id);
         console.log('Doctor ID:', testDoctor.id);
         console.log('Token:', loginResult.token ? 'Present' : 'Missing');
@@ -102,20 +102,20 @@ async function finalTest() {
         
         const appointmentResult = await appointmentResponse.json();
         
-        console.log('\n3️⃣ Response received:');
+        console.log('\n Response received:');
         console.log('Status:', appointmentResponse.status);
         console.log('Response:', appointmentResult);
         
         if (appointmentResponse.ok) {
-            console.log('🎉 SUCCESS! Appointment created successfully!');
+            console.log(' SUCCESS! Appointment created successfully!');
         } else {
-            console.log('❌ FAILED! Check server logs above for details.');
+            console.log(' FAILED! Check server logs above for details.');
         }
         
     } catch (error) {
-        console.log('❌ Test failed:', error.message);
+        console.log(' Test failed:', error.message);
     } finally {
-        console.log('\n🛑 Stopping server...');
+        console.log('\n Stopping server...');
         server.kill();
         
         setTimeout(() => {
