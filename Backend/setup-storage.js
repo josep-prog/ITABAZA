@@ -14,13 +14,13 @@ async function setupStorage() {
 
         if (bucketError) {
             if (bucketError.message.includes('already exists')) {
-                console.log('✅ Storage bucket already exists');
+                console.log(' Storage bucket already exists');
             } else {
-                console.error('❌ Error creating storage bucket:', bucketError);
+                console.error(' Error creating storage bucket:', bucketError);
                 return;
             }
         } else {
-            console.log('✅ Storage bucket created successfully');
+            console.log(' Storage bucket created successfully');
         }
 
         // Set up storage policies
@@ -63,16 +63,16 @@ async function setupStorage() {
         `;
 
         // Execute policies (these will be handled by Supabase automatically)
-        console.log('✅ Storage policies configured');
+        console.log(' Storage policies configured');
 
-        console.log('🎉 Supabase storage setup completed successfully!');
-        console.log('\n📋 Next steps:');
+        console.log(' Supabase storage setup completed successfully!');
+        console.log('\n Next steps:');
         console.log('1. Make sure your .env file has the correct Supabase credentials');
         console.log('2. Test the voice recording functionality in the frontend');
         console.log('3. Check the Supabase dashboard to verify storage bucket creation');
 
     } catch (error) {
-        console.error('❌ Error setting up storage:', error);
+        console.error(' Error setting up storage:', error);
     }
 }
 
