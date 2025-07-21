@@ -3,7 +3,7 @@ const axios = require('axios');
 async function testUnifiedLogin() {
   const baseURL = 'http://localhost:8080';
   
-  console.log('🧪 Testing Unified Login System\n');
+  console.log(' Testing Unified Login System\n');
   
   // Test cases
   const testCases = [
@@ -40,19 +40,19 @@ async function testUnifiedLogin() {
       const data = response.data;
       
       if (data.success) {
-        console.log(`✅ Login successful!`);
+        console.log(` Login successful!`);
         console.log(`   User Type: ${data.userType}`);
         console.log(`   Dashboard URL: ${data.dashboardUrl}`);
         console.log(`   User Name: ${data.user.firstName || data.user.name}`);
         
         if (data.userType === testCase.expectedType) {
-          console.log(`✅ User type matches expected: ${testCase.expectedType}`);
+          console.log(` User type matches expected: ${testCase.expectedType}`);
         } else {
-          console.log(`⚠️  User type mismatch. Expected: ${testCase.expectedType}, Got: ${data.userType}`);
+          console.log(`  User type mismatch. Expected: ${testCase.expectedType}, Got: ${data.userType}`);
         }
         
         // Test the user-role endpoint
-        console.log(`🔍 Testing /auth/user-role endpoint...`);
+        console.log(` Testing /auth/user-role endpoint...`);
         try {
           const roleResponse = await axios.get(`${baseURL}/auth/user-role`, {
             headers: {
@@ -61,34 +61,34 @@ async function testUnifiedLogin() {
           });
           
           if (roleResponse.data.success) {
-            console.log(`✅ Role endpoint works: ${roleResponse.data.userType}`);
+            console.log(` Role endpoint works: ${roleResponse.data.userType}`);
           }
         } catch (roleError) {
-          console.log(`❌ Role endpoint failed:`, roleError.response?.data);
+          console.log(` Role endpoint failed:`, roleError.response?.data);
         }
         
       } else {
-        console.log(`❌ Login failed: ${data.message}`);
+        console.log(` Login failed: ${data.message}`);
       }
       
     } catch (error) {
       if (error.response) {
-        console.log(`❌ Login failed: ${error.response.data.message || error.response.data}`);
+        console.log(` Login failed: ${error.response.data.message || error.response.data}`);
         if (testCase.expectedType === null) {
-          console.log(`✅ Expected failure for invalid credentials`);
+          console.log(` Expected failure for invalid credentials`);
         }
       } else {
-        console.log(`❌ Network error:`, error.message);
+        console.log(` Network error:`, error.message);
       }
     }
     
     console.log(''); // Empty line for readability
   }
   
-  console.log('🏁 Testing complete!');
+  console.log(' Testing complete!');
   
   // Instructions
-  console.log('\n📋 Next Steps:');
+  console.log('\n Next Steps:');
   console.log('1. Replace "yourpassword" with the actual password for nishimwejoseph26@gmail.com');
   console.log('2. Add password_hash column to doctors table using the SQL in SETUP_INSTRUCTIONS.md');
   console.log('3. Test doctor login after database update');
