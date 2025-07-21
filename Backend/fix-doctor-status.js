@@ -1,7 +1,7 @@
 const { supabase } = require("./config/db");
 
 async function fixDoctorStatus() {
-    console.log("🔧 Fixing doctor status...\n");
+    console.log("Fixing doctor status...\n");
     
     try {
         // First, let's see what doctors we have
@@ -10,7 +10,7 @@ async function fixDoctorStatus() {
             .select('*');
         
         if (fetchError) {
-            console.error("❌ Error fetching doctors:", fetchError);
+            console.error("Error fetching doctors:", fetchError);
             return;
         }
         
@@ -30,11 +30,11 @@ async function fixDoctorStatus() {
             .select();
         
         if (updateError) {
-            console.error("❌ Error updating doctors:", updateError);
+            console.error("Error updating doctors:", updateError);
             return;
         }
         
-        console.log(`\n✅ Updated ${updatedDoctors.length} doctors to be approved and available`);
+        console.log(`\n Updated ${updatedDoctors.length} doctors to be approved and available`);
         
         // Verify the update
         const { data: verifiedDoctors, error: verifyError } = await supabase
@@ -42,11 +42,11 @@ async function fixDoctorStatus() {
             .select('*');
         
         if (verifyError) {
-            console.error("❌ Error verifying update:", verifyError);
+            console.error(" Error verifying update:", verifyError);
             return;
         }
         
-        console.log("\n📊 Updated Status Distribution:");
+        console.log("\n Updated Status Distribution:");
         const approved = verifiedDoctors.filter(d => d.status === true).length;
         const available = verifiedDoctors.filter(d => d.is_available === true).length;
         const approvedAndAvailable = verifiedDoctors.filter(d => d.status === true && d.is_available === true).length;
@@ -57,11 +57,11 @@ async function fixDoctorStatus() {
         console.log(`   Approved & Available: ${approvedAndAvailable}`);
         
         if (approvedAndAvailable > 0) {
-            console.log("\n🎉 Doctors are now available for booking!");
+            console.log("\n Doctors are now available for booking!");
         }
         
     } catch (error) {
-        console.error("❌ Error fixing doctor status:", error);
+        console.error(" Error fixing doctor status:", error);
     }
 }
 
