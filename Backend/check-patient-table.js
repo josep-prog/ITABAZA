@@ -13,7 +13,7 @@ async function checkPatientTable() {
                     .limit(1);
                 
                 if (!error) {
-                    console.log('✅ Found table:', name);
+                    console.log('Found table:', name);
                     
                     // Check columns
                     const { data: sample } = await supabase
@@ -25,10 +25,10 @@ async function checkPatientTable() {
                         console.log('Sample columns:', Object.keys(sample[0]));
                     }
                 } else {
-                    console.log('❌', name, '- does not exist');
+                    console.log('wrong', name, '- does not exist');
                 }
             } catch (err) {
-                console.log('❌', name, '- error:', err.message);
+                console.log('wrong', name, '- error:', err.message);
             }
         }
     } catch (error) {
