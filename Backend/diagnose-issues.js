@@ -5,24 +5,24 @@ const { DoctorModel } = require('./models/doctor.model');
 const bcrypt = require('bcrypt');
 
 async function diagnoseIssues() {
-    console.log('🔍 Starting diagnosis of user registration and appointment creation issues...\n');
+    console.log(' Starting diagnosis of user registration and appointment creation issues...\n');
     
     // Test 1: Database Connection
-    console.log('1️⃣ Testing database connection...');
+    console.log(' Testing database connection...');
     try {
         const { data, error } = await supabase.from('users').select('count').limit(1);
         if (error) {
-            console.log('❌ Database connection failed:', error.message);
+            console.log(' Database connection failed:', error.message);
             return;
         }
-        console.log('✅ Database connection successful\n');
+        console.log(' Database connection successful\n');
     } catch (error) {
-        console.log('❌ Database connection error:', error.message);
+        console.log(' Database connection error:', error.message);
         return;
     }
 
     // Test 2: User Registration Flow
-    console.log('2️⃣ Testing user registration...');
+    console.log(' Testing user registration...');
     const testUser = {
         first_name: 'Test',
         last_name: 'Patient',
@@ -38,26 +38,26 @@ async function diagnoseIssues() {
         });
         
         const createdUser = await UserModel.create(testUser);
-        console.log('✅ User created successfully:', {
+        console.log(' User created successfully:', {
             id: createdUser.id,
             email: createdUser.email,
             mobile: createdUser.mobile
         });
         
         // Test 3: Retrieve the created user
-        console.log('\n3️⃣ Testing user retrieval...');
+        console.log('\n Testing user retrieval...');
         const retrievedUser = await UserModel.findByEmail(testUser.email);
         if (retrievedUser) {
-            console.log('✅ User retrieval successful:', retrievedUser.id);
+            console.log('User retrieval successful:', retrievedUser.id);
         } else {
-            console.log('❌ User retrieval failed');
+            console.log('User retrieval failed');
         }
 
         // Test 4: Get a test doctor for appointment creation
-        console.log('\n4️⃣ Testing appointment creation...');
+        console.log('\n Testing appointment creation...');
         const doctors = await DoctorModel.findAll();
         if (doctors.length === 0) {
-            console.log('❌ No doctors found in database. Creating a test doctor...');
+            console.log( 'No doctors found in database. Creating a test doctor...');
             
             // Create a test doctor
             const testDoctor = {
@@ -74,12 +74,12 @@ async function diagnoseIssues() {
             };
             
             const createdDoctor = await DoctorModel.create(testDoctor);
-            console.log('✅ Test doctor created:', createdDoctor.id);
+            console.log('Test doctor created:', createdDoctor.id);
             
             // Test appointment creation with the new doctor
             await testAppointmentCreation(createdUser.id, createdDoctor.id);
         } else {
-            console.log('✅ Found existing doctors. Using first available doctor...');
+            console.log('Found existing doctors. Using first available doctor...');
             const testDoctor = doctors.find(doc => doc.status && doc.is_available) || doctors[0];
             console.log('Using doctor:', testDoctor.doctor_name, testDoctor.id);
             
@@ -88,13 +88,13 @@ async function diagnoseIssues() {
         }
 
     } catch (error) {
-        console.log('❌ User registration failed:', error.message);
+        console.log(' User registration failed:', error.message);
         console.log('Full error:', error);
     }
 }
 
 async function testAppointmentCreation(patientId, doctorId) {
-    console.log('\n🏥 Testing appointment creation...');
+    console.log('\n Testing appointment creation...');
     
     const testAppointment = {
         patient_id: patientId,
@@ -128,7 +128,7 @@ async function testAppointmentCreation(patientId, doctorId) {
         });
         
         const createdAppointment = await AppointmentModel.create(testAppointment);
-        console.log('✅ Appointment created successfully:', {
+        console.log(' Appointment created successfully:', {
             id: createdAppointment.id,
             appointment_date: createdAppointment.appointment_date,
             appointment_time: createdAppointment.appointment_time,
@@ -136,16 +136,16 @@ async function testAppointmentCreation(patientId, doctorId) {
         });
 
         // Test 5: Retrieve the created appointment
-        console.log('\n5️⃣ Testing appointment retrieval...');
+        console.log('\n Testing appointment retrieval...');
         const retrievedAppointment = await AppointmentModel.findById(createdAppointment.id);
         if (retrievedAppointment) {
-            console.log('✅ Appointment retrieval successful');
+            console.log(' Appointment retrieval successful');
         } else {
-            console.log('❌ Appointment retrieval failed');
+            console.log(' Appointment retrieval failed');
         }
 
     } catch (error) {
-        console.log('❌ Appointment creation failed:', error.message);
+        console.log(' Appointment creation failed:', error.message);
         console.log('Full error:', error);
         
         // Check if it's a foreign key constraint error
@@ -173,7 +173,7 @@ async function testAppointmentCreation(patientId, doctorId) {
 
 // Test 6: Check table schemas
 async function checkTableSchemas() {
-    console.log('\n6️⃣ Checking table schemas...');
+    console.log('\n Checking table schemas...');
     
     try {
         // Check users table structure
@@ -184,9 +184,9 @@ async function checkTableSchemas() {
             .eq('table_schema', 'public');
             
         if (usersError) {
-            console.log('❌ Error checking users schema:', usersError.message);
+            console.log(' Error checking users schema:', usersError.message);
         } else {
-            console.log('✅ Users table schema:');
+            console.log(' Users table schema:');
             usersSchema.forEach(col => {
                 console.log(`  - ${col.column_name}: ${col.data_type} (nullable: ${col.is_nullable})`);
             });
@@ -200,22 +200,22 @@ async function checkTableSchemas() {
             .eq('table_schema', 'public');
             
         if (appointmentsError) {
-            console.log('❌ Error checking appointments schema:', appointmentsError.message);
+            console.log(' Error checking appointments schema:', appointmentsError.message);
         } else {
-            console.log('\n✅ Appointments table schema:');
+            console.log('\n Appointments table schema:');
             appointmentsSchema.forEach(col => {
                 console.log(`  - ${col.column_name}: ${col.data_type} (nullable: ${col.is_nullable})`);
             });
         }
 
     } catch (error) {
-        console.log('❌ Error checking schemas:', error.message);
+        console.log(' Error checking schemas:', error.message);
     }
 }
 
 // Test 7: Check RLS policies
 async function checkRLSPolicies() {
-    console.log('\n7️⃣ Checking Row Level Security policies...');
+    console.log('\n Checking Row Level Security policies...');
     
     try {
         const { data: policies, error } = await supabase
@@ -224,15 +224,15 @@ async function checkRLSPolicies() {
             .in('tablename', ['users', 'appointments', 'doctors']);
             
         if (error) {
-            console.log('❌ Error checking RLS policies:', error.message);
+            console.log(' Error checking RLS policies:', error.message);
         } else {
-            console.log('✅ RLS Policies found:');
+            console.log(' RLS Policies found:');
             policies.forEach(policy => {
                 console.log(`  - ${policy.tablename}.${policy.policyname} (${policy.cmd})`);
             });
         }
     } catch (error) {
-        console.log('❌ Error checking RLS policies:', error.message);
+        console.log(' Error checking RLS policies:', error.message);
     }
 }
 
@@ -242,9 +242,9 @@ async function runFullDiagnosis() {
     await checkTableSchemas();
     await checkRLSPolicies();
     
-    console.log('\n🎯 Diagnosis Summary:');
-    console.log('If you see ✅ for all tests, the database operations are working correctly.');
-    console.log('If you see ❌ for any test, that indicates where the issue lies.');
+    console.log('\n Diagnosis Summary:');
+    console.log('If you see approaved for all tests, the database operations are working correctly.');
+    console.log('If you see wrong for any test, that indicates where the issue lies.');
     console.log('\nCommon fixes:');
     console.log('1. Check environment variables (.env file)');
     console.log('2. Verify Supabase project is active and accessible');
