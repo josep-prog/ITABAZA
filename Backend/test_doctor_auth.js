@@ -16,27 +16,27 @@ const testDoctor = {
 // Test functions
 async function testDoctorCreation() {
     try {
-        console.log('🧪 Testing doctor account creation...');
+        console.log(' Testing doctor account creation...');
         
         const response = await axios.post(`${BASE_URL}/doctor/addDoctor`, testDoctor);
         
         if (response.status === 201) {
-            console.log('✅ Doctor creation successful!');
+            console.log(' Doctor creation successful!');
             console.log('Response:', response.data);
             return true;
         } else {
-            console.log('❌ Doctor creation failed with status:', response.status);
+            console.log(' Doctor creation failed with status:', response.status);
             return false;
         }
     } catch (error) {
-        console.log('❌ Doctor creation error:', error.response?.data || error.message);
+        console.log(' Doctor creation error:', error.response?.data || error.message);
         return false;
     }
 }
 
 async function testDoctorLogin() {
     try {
-        console.log('🧪 Testing doctor login...');
+        console.log(' Testing doctor login...');
         
         const loginData = {
             email: testDoctor.email,
@@ -46,22 +46,22 @@ async function testDoctorLogin() {
         const response = await axios.post(`${BASE_URL}/doctor/login`, loginData);
         
         if (response.status === 200) {
-            console.log('✅ Doctor login successful!');
+            console.log(' Doctor login successful!');
             console.log('Response:', response.data);
             return true;
         } else {
-            console.log('❌ Doctor login failed with status:', response.status);
+            console.log(' Doctor login failed with status:', response.status);
             return false;
         }
     } catch (error) {
-        console.log('❌ Doctor login error:', error.response?.data || error.message);
+        console.log(' Doctor login error:', error.response?.data || error.message);
         return false;
     }
 }
 
 async function testWrongPassword() {
     try {
-        console.log('🧪 Testing login with wrong password...');
+        console.log(' Testing login with wrong password...');
         
         const loginData = {
             email: testDoctor.email,
@@ -71,14 +71,14 @@ async function testWrongPassword() {
         const response = await axios.post(`${BASE_URL}/doctor/login`, loginData);
         
         // This should fail
-        console.log('❌ Login with wrong password should have failed but succeeded');
+        console.log(' Login with wrong password should have failed but succeeded');
         return false;
     } catch (error) {
         if (error.response?.status === 401) {
-            console.log('✅ Login with wrong password correctly rejected');
+            console.log(' Login with wrong password correctly rejected');
             return true;
         } else {
-            console.log('❌ Unexpected error:', error.response?.data || error.message);
+            console.log(' Unexpected error:', error.response?.data || error.message);
             return false;
         }
     }
@@ -86,7 +86,7 @@ async function testWrongPassword() {
 
 async function testMissingPassword() {
     try {
-        console.log('🧪 Testing doctor creation without password...');
+        console.log(' Testing doctor creation without password...');
         
         const doctorWithoutPassword = {
             first_name: 'Jane',
@@ -100,21 +100,21 @@ async function testMissingPassword() {
         const response = await axios.post(`${BASE_URL}/doctor/addDoctor`, doctorWithoutPassword);
         
         // This should fail
-        console.log('❌ Doctor creation without password should have failed but succeeded');
+        console.log(' Doctor creation without password should have failed but succeeded');
         return false;
     } catch (error) {
         if (error.response?.status === 400) {
-            console.log('✅ Doctor creation without password correctly rejected');
+            console.log(' Doctor creation without password correctly rejected');
             return true;
         } else {
-            console.log('❌ Unexpected error:', error.response?.data || error.message);
+            console.log(' Unexpected error:', error.response?.data || error.message);
             return false;
         }
     }
 }
 
 async function runAllTests() {
-    console.log('🚀 Starting Doctor Authentication Tests\n');
+    console.log(' Starting Doctor Authentication Tests\n');
     
     const results = {
         creation: await testDoctorCreation(),
@@ -123,21 +123,21 @@ async function runAllTests() {
         missingPassword: await testMissingPassword()
     };
     
-    console.log('\n📊 Test Results Summary:');
-    console.log('- Doctor Creation:', results.creation ? '✅ PASS' : '❌ FAIL');
-    console.log('- Doctor Login:', results.login ? '✅ PASS' : '❌ FAIL');
-    console.log('- Wrong Password Rejection:', results.wrongPassword ? '✅ PASS' : '❌ FAIL');
-    console.log('- Missing Password Rejection:', results.missingPassword ? '✅ PASS' : '❌ FAIL');
+    console.log('\n Test Results Summary:');
+    console.log('- Doctor Creation:', results.creation ? 'PASS' : 'FAIL');
+    console.log('- Doctor Login:', results.login ? ' PASS' : ' FAIL');
+    console.log('- Wrong Password Rejection:', results.wrongPassword ? ' PASS' : ' FAIL');
+    console.log('- Missing Password Rejection:', results.missingPassword ? ' PASS' : ' FAIL');
     
     const passedTests = Object.values(results).filter(Boolean).length;
     const totalTests = Object.keys(results).length;
     
-    console.log(`\n🏆 Overall: ${passedTests}/${totalTests} tests passed`);
+    console.log(`\n Overall: ${passedTests}/${totalTests} tests passed`);
     
     if (passedTests === totalTests) {
-        console.log('🎉 All tests passed! Doctor authentication is working correctly.');
+        console.log(' All tests passed! Doctor authentication is working correctly.');
     } else {
-        console.log('⚠️  Some tests failed. Please check the implementation.');
+        console.log('  Some tests failed. Please check the implementation.');
     }
 }
 
