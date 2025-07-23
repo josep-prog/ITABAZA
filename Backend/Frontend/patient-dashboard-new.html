@@ -703,6 +703,21 @@
         </main>
     </div>
 
+    <!-- Appointment Details Modal -->
+    <div id="appointmentDetailsModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+      <div class="modal-content" style="background:#fff; border-radius:10px; max-width:500px; width:90%; padding:30px; position:relative;">
+        <span id="closeAppointmentModal" style="position:absolute; top:10px; right:20px; font-size:24px; cursor:pointer;">&times;</span>
+        <h2>Appointment Details</h2>
+        <div id="appointmentDetailsBody">
+          <!-- Populated by JS -->
+        </div>
+        <h3 style="margin-top:24px;">Related Documents</h3>
+        <ul id="appointmentDocumentsList">
+          <!-- Populated by JS -->
+        </ul>
+      </div>
+    </div>
+
     <script type="module" src="./Scripts/patient-dashboard-new.js"></script>
 </body>
 </html>
