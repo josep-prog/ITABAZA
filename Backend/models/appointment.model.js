@@ -85,7 +85,7 @@ const AppointmentModel = {
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .select('*')
-      .eq('status', false)
+      .eq('status', 'pending')
       .order('created_at', { ascending: false });
     
     if (error) throw error;
@@ -109,7 +109,7 @@ const AppointmentModel = {
     const { data, error } = await supabase
       .from(TABLE_NAME)
       .update(updates)
-      .eq('appointment_id', id)
+      .eq('id', id)
       .select();
     
     if (error) throw error;
@@ -121,7 +121,7 @@ const AppointmentModel = {
     const { error } = await supabase
       .from(TABLE_NAME)
       .delete()
-      .eq('appointment_id', id);
+      .eq('id', id);
     
     if (error) throw error;
     return true;

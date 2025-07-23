@@ -49,10 +49,10 @@
     </style>
 </head>
 <body>
-    <h1>🧪 Admin Logout Fix Test</h1>
+    <h1> Admin Logout Fix Test</h1>
     
     <div class="test-section info">
-        <h2>✅ Fix Summary</h2>
+        <h2> Fix Summary</h2>
         <p><strong>Issue:</strong> Admin logout was trying to redirect to <code>admin.login.html</code> (404 error)</p>
         <p><strong>Solution:</strong> Updated logout redirects to use <code>login.html</code> (unified login page)</p>
         
@@ -64,7 +64,7 @@
     </div>
 
     <div class="test-section">
-        <h2>🔧 Test Admin Logout Simulation</h2>
+        <h2> Test Admin Logout Simulation</h2>
         <p>This test simulates the admin logout process to verify the fix works correctly.</p>
         
         <button onclick="simulateAdminLogin()">1. Simulate Admin Login</button>
@@ -75,7 +75,7 @@
     </div>
 
     <div class="test-section success">
-        <h2>✨ Expected Behavior After Fix</h2>
+        <h2> Expected Behavior After Fix</h2>
         <ol>
             <li><strong>Admin logs in</strong> → Goes to dashboard.html</li>
             <li><strong>Admin clicks logout</strong> → Shows "Logged out successfully" message</li>
@@ -85,7 +85,7 @@
     </div>
 
     <div class="test-section">
-        <h2>🎯 How to Test in Real App</h2>
+        <h2> How to Test in Real App</h2>
         <ol>
             <li><strong>Login as admin</strong>: Go to <code>http://0.0.0.0:3000/login.html</code></li>
             <li><strong>Use credentials</strong>: <code>admin@itabaza.com</code> / <code>k@#+ymej@AQ@3</code></li>
@@ -114,12 +114,12 @@
             localStorage.setItem('adminId', 'admin-123');
             localStorage.setItem('userEmail', 'admin@itabaza.com');
             
-            updateResults('✅ Admin login simulated - localStorage populated with admin data', 'success');
-            updateResults('📋 Stored: token, userType=admin, userName=ITABAZA Admin', 'info');
+            updateResults(' Admin login simulated - localStorage populated with admin data', 'success');
+            updateResults(' Stored: token, userType=admin, userName=ITABAZA Admin', 'info');
         }
 
         function simulateAdminLogout() {
-            updateResults('🔄 Starting admin logout process...', 'info');
+            updateResults(' Starting admin logout process...', 'info');
             
             // Check what's currently stored
             const storedItems = [];
@@ -127,7 +127,7 @@
                 const key = localStorage.key(i);
                 storedItems.push(`${key}: ${localStorage.getItem(key)}`);
             }
-            updateResults(`📊 Before logout - LocalStorage items: ${storedItems.length}`, 'info');
+            updateResults(` Before logout - LocalStorage items: ${storedItems.length}`, 'info');
             
             // Simulate the admin logout process (similar to admin_dash.js)
             const keysToRemove = [
@@ -140,20 +140,20 @@
                 sessionStorage.removeItem(key);
             });
             
-            updateResults('🧹 Cleared admin session data from localStorage and sessionStorage', 'success');
-            updateResults('✅ Logout process complete - would redirect to login.html (not admin.login.html)', 'success');
-            updateResults('🎉 No more 404 errors! Fix is working correctly.', 'success');
+            updateResults(' Cleared admin session data from localStorage and sessionStorage', 'success');
+            updateResults(' Logout process complete - would redirect to login.html (not admin.login.html)', 'success');
+            updateResults(' No more 404 errors! Fix is working correctly.', 'success');
         }
 
         function clearAll() {
             localStorage.clear();
             sessionStorage.clear();
             document.getElementById('test-results').innerHTML = '';
-            updateResults('🗑️ All storage cleared - test environment reset', 'info');
+            updateResults(' All storage cleared - test environment reset', 'info');
         }
 
         // Initial message
-        updateResults('🚀 Admin logout fix test ready. Click buttons above to test.', 'info');
+        updateResults(' Admin logout fix test ready. Click buttons above to test.', 'info');
     </script>
 </body>
 </html>

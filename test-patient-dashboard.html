@@ -116,7 +116,7 @@
 
                 document.getElementById('loginResult').innerHTML = `
                     <div class="success">
-                        ✅ Patient login simulated successfully!<br>
+                         Patient login simulated successfully!<br>
                         Stored patient info: ${patientInfo.first_name} ${patientInfo.last_name} (${patientInfo.email})
                     </div>
                 `;
@@ -124,7 +124,7 @@
                 testResults.login = true;
             } catch (error) {
                 document.getElementById('loginResult').innerHTML = `
-                    <div class="error">❌ Login simulation failed: ${error.message}</div>
+                    <div class="error"> Login simulation failed: ${error.message}</div>
                 `;
                 testResults.login = false;
             }
@@ -139,7 +139,7 @@
                     const appointments = data.data || [];
                     document.getElementById('appointmentsResult').innerHTML = `
                         <div class="success">
-                            ✅ Appointments API working! Found ${appointments.length} appointments.
+                             Appointments API working! Found ${appointments.length} appointments.
                         </div>
                         <div>
                             <h4>Recent Appointments:</h4>
@@ -159,7 +159,7 @@
                 }
             } catch (error) {
                 document.getElementById('appointmentsResult').innerHTML = `
-                    <div class="error">❌ Appointments API failed: ${error.message}</div>
+                    <div class="error"> Appointments API failed: ${error.message}</div>
                 `;
                 testResults.appointments = false;
             }
@@ -174,7 +174,7 @@
                     const stats = data.data;
                     document.getElementById('statsResult').innerHTML = `
                         <div class="success">
-                            ✅ Dashboard Stats API working!
+                             Dashboard Stats API working!
                         </div>
                         <div>
                             <h4>Patient Statistics:</h4>
@@ -194,7 +194,7 @@
                 }
             } catch (error) {
                 document.getElementById('statsResult').innerHTML = `
-                    <div class="error">❌ Dashboard Stats API failed: ${error.message}</div>
+                    <div class="error"> Dashboard Stats API failed: ${error.message}</div>
                 `;
                 testResults.stats = false;
             }
@@ -209,7 +209,7 @@
                     const documents = data.data || [];
                     document.getElementById('documentsResult').innerHTML = `
                         <div class="success">
-                            ✅ Documents API working! Found ${documents.length} documents.
+                             Documents API working! Found ${documents.length} documents.
                         </div>
                         <div>
                             <h4>Documents:</h4>
@@ -231,7 +231,7 @@
                 }
             } catch (error) {
                 document.getElementById('documentsResult').innerHTML = `
-                    <div class="error">❌ Documents API failed: ${error.message}</div>
+                    <div class="error"> Documents API failed: ${error.message}</div>
                 `;
                 testResults.documents = false;
             }
@@ -260,12 +260,12 @@
                     <h4>Test Results: ${passed}/${total} tests passed</h4>
                     <ul>
                         ${Object.entries(testResults).map(([test, result]) => 
-                            `<li>${result ? '✅' : '❌'} ${test.charAt(0).toUpperCase() + test.slice(1)}</li>`
+                            `<li>${result ? 'correct' : 'wrong'} ${test.charAt(0).toUpperCase() + test.slice(1)}</li>`
                         ).join('')}
                     </ul>
                     ${failed === 0 ? 
-                        '<p><strong>🎉 All tests passed! Your patient dashboard should work correctly.</strong></p>' :
-                        '<p><strong>⚠️ Some tests failed. Check the individual test results above.</strong></p>'
+                        '<p><strong> All tests passed! Your patient dashboard should work correctly.</strong></p>' :
+                        '<p><strong> Some tests failed. Check the individual test results above.</strong></p>'
                     }
                 </div>
             `;

@@ -120,10 +120,15 @@ class PaymentManager {
             window.location.href = 'book.appointment.html';
             return;
         }
-        const userId = this.getCurrentUserId();
-        const userEmail = this.getCurrentUserEmail();
-        if (!userId || userId === 'temp-user-id') {
+        const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+        if (!userId) {
             alert('You must be logged in to book an appointment.');
+            window.location.href = 'login.html';
+            return;
+        }
+        const userEmail = this.getCurrentUserEmail();
+        if (!userEmail) {
+            alert('Could not retrieve user email. Please log in again.');
             window.location.href = 'login.html';
             return;
         }
@@ -200,6 +205,8 @@ class PaymentManager {
                     'Authorization': `Bearer ${authToken}`
                 },
                 body: JSON.stringify({
+                    userID: appointmentData.userID,
+                    email: appointmentData.email,
                     ageOfPatient: appointmentData.ageOfPatient,
                     gender: appointmentData.gender,
                     address: appointmentData.address,

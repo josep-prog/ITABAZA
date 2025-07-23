@@ -103,8 +103,7 @@ async function setupTestDoctors() {
         } else {
             console.log('\n All doctors in database:');
             allDoctors.forEach(doctor => {
-                const availableIcon = doctor.is_available ? '🟢' : '🔴';
-                console.log(`${availableIcon} ${doctor.doctor_name} (${doctor.email}) - ${doctor.qualifications}`);
+                console.log(`${doctor.doctor_name} (${doctor.email}) - ${doctor.qualifications}`);
             });
         }
         

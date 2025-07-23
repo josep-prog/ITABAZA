@@ -1081,27 +1081,27 @@
             
             detailsContent.innerHTML = `
                 <div class="detail-card">
-                    <div class="detail-label">📅 Appointment Date</div>
+                    <div class="detail-label"> Appointment Date</div>
                     <div class="detail-value">${formatDate(appointment.appointment_date)}</div>
                 </div>
                 
                 <div class="detail-card">
-                    <div class="detail-label">🕒 Time</div>
+                    <div class="detail-label"> Time</div>
                     <div class="detail-value">${appointment.appointment_time || appointment.slot_time || 'TBD'}</div>
                 </div>
                 
                 <div class="detail-card">
-                    <div class="detail-label">👨‍⚕️ Doctor</div>
+                    <div class="detail-label">👨 Doctor</div>
                     <div class="detail-value">Dr. ${appointment.doc_first_name || 'TBD'}</div>
                 </div>
                 
                 <div class="detail-card">
-                    <div class="detail-label">🏥 Type</div>
+                    <div class="detail-label"> Type</div>
                     <div class="detail-value">${appointment.consultation_type || 'Consultation'}</div>
                 </div>
                 
                 <div class="detail-card">
-                    <div class="detail-label">📊 Status</div>
+                    <div class="detail-label"> Status</div>
                     <div class="detail-value">
                         <span style="color: ${statusColor}; font-weight: bold; text-transform: capitalize;">
                             ${appointment.status || 'Pending'}
@@ -1110,28 +1110,28 @@
                 </div>
                 
                 <div class="detail-card">
-                    <div class="detail-label">💳 Payment Status</div>
+                    <div class="detail-label"> Payment Status</div>
                     <div class="detail-value">
                         <span style="color: ${appointment.payment_status ? '#28a745' : '#dc3545'}; font-weight: bold;">
-                            ${appointment.payment_status ? '✅ Paid' : '❌ Unpaid'}
+                            ${appointment.payment_status ? ' Paid' : ' Unpaid'}
                         </span>
                     </div>
                 </div>
                 
                 ${appointment.problem_description ? `
                 <div class="detail-card" style="grid-column: 1 / -1;">
-                    <div class="detail-label">📝 Problem Description</div>
+                    <div class="detail-label">Problem Description</div>
                     <div class="detail-value">${appointment.problem_description}</div>
                 </div>
                 ` : ''}
                 
                 <div class="detail-card">
-                    <div class="detail-label">📅 Booking Date</div>
+                    <div class="detail-label"> Booking Date</div>
                     <div class="detail-value">${formatDate(appointment.created_at)}</div>
                 </div>
                 
                 <div class="detail-card">
-                    <div class="detail-label">🆔 Appointment ID</div>
+                    <div class="detail-label"> Appointment ID</div>
                     <div class="detail-value" style="font-family: monospace; font-size: 0.9rem;">${appointment.id}</div>
                 </div>
             `;
@@ -1246,15 +1246,15 @@
             let documentsHtml = '';
             documents.forEach(doc => {
                 const documentTypeIcons = {
-                    'consultation_notes': '📋',
-                    'prescription': '💊',
-                    'lab_report': '🧪',
-                    'x_ray': '🦴',
-                    'scan': '🔍',
-                    'medical_certificate': '📜',
-                    'discharge_summary': '🏥',
-                    'referral': '👨‍⚕️',
-                    'other': '📄'
+                    'consultation_notes': '[CONSULT]',
+                    'prescription': '[RX]',
+                    'lab_report': '[LAB]',
+                    'x_ray': '[X-RAY]',
+                    'scan': '[SCAN]',
+                    'medical_certificate': '[CERT]',
+                    'discharge_summary': '[DISCHARGE]',
+                    'referral': '[REFERRAL]',
+                    'other': '[DOC]'
                 };
                 
                 const icon = documentTypeIcons[doc.document_type] || '📄';
