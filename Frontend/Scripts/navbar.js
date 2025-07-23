@@ -390,12 +390,10 @@ function performCompleteLogout() {
         let redirectUrl;
         switch(userRole) {
             case 'admin':
-                redirectUrl = './admin.login.html';
-                break;
             case 'doctor':
-                redirectUrl = './unified-login.html';
-                break;
             case 'patient':
+                redirectUrl = './login.html';
+                break;
             default:
                 redirectUrl = './index.html';
                 break;
