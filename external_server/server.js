@@ -14,12 +14,13 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 
-// Serve static files from the Frontend directory
-app.use(express.static(path.join(__dirname, '../../../home/joe/Documents/Class-project/ITABAZA/Frontend')));
+// Serve static files from the current external_server directory first, then fallback to Frontend
+app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, '../Frontend')));
 
 // Route for the doctor dashboard
 app.get('/doctor-dashboard.html', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../../home/joe/Documents/Class-project/ITABAZA/Frontend/doctor-dashboard.html'));
+  res.sendFile(path.join(__dirname, 'doctor-dashboard.html'));
 });
 
 // Default route redirects to doctor dashboard
