@@ -587,92 +587,83 @@ router.get('/doctor/:doctorId/documents', async (req, res) => {
 router.get('/patient/:patientId/documents', async (req, res) => {
     try {
         const { patientId } = req.params;
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 100 } = req.query;
 
-        console.log(` Fetching documents for patient ID: ${patientId}`);
+        console.log(`[DEBUG] Fetching documents for patientId: ${patientId}`);
 
-        // Use the stored function to get documents with full details
-        let documents, error;
-        
-        try {
-            const result = await supabase
-                .rpc('get_patient_documents', {
-                    p_patient_id: patientId,
-                    p_limit: parseInt(limit),
-                    p_offset: (parseInt(page) - 1) * parseInt(limit)
-                });
-            documents = result.data;
-            error = result.error;
-            console.log(` Function returned ${documents?.length || 0} documents`);
-        } catch (funcError) {
-            console.log('Function not available, using direct query...');
-            error = funcError;
-        }
+        // Query patient_documents table
+        const { data: documents, error } = await supabase
+            .from('patient_documents')
+            .select(`
+                id,
+                document_name,
+                document_type,
+                document_category,
+                file_url,
+                file_size,
+                description,
+                document_date,
+                uploaded_at,
+                doctor_id,
+                appointment_id
+            `)
+            .eq('patient_id', patientId)
+            .eq('status', 'active')
+            .eq('is_accessible_to_patient', true)
+            .order('uploaded_at', { ascending: false });
 
         if (error) {
-            console.error('Error from get_patient_documents function:', error);
-            // Fallback to direct table query if function fails
-            const { data: fallbackDocuments, error: fallbackError } = await supabase
-                .from('patient_documents')
-                .select(`
-                    id,
-                    document_name,
-                    document_type,
-                    document_category,
-                    file_url,
-                    file_size,
-                    description,
-                    document_date,
-                    uploaded_at,
-                    doctors:doctor_id (
-                        doctor_name,
-                        qualifications
-                    ),
-                    appointments:appointment_id (
-                        appointment_date
-                    )
-                `)
-                .eq('patient_id', patientId)
-                .eq('status', 'active')
-                .eq('is_accessible_to_patient', true)
-                .order('uploaded_at', { ascending: false })
-                .range((parseInt(page) - 1) * parseInt(limit), parseInt(page) * parseInt(limit) - 1);
-            
-            if (fallbackError) {
-                console.error('Fallback query error:', fallbackError);
-                throw fallbackError;
-            }
-            
-            console.log(` Fallback query returned ${fallbackDocuments?.length || 0} documents`);
-            
-            return res.json({
-                success: true,
-                data: fallbackDocuments || [],
-                pagination: {
-                    page: parseInt(page),
-                    limit: parseInt(limit),
-                    total: fallbackDocuments?.length || 0
-                },
-                source: 'fallback'
+            console.error('[ERROR] Error fetching patient documents:', error);
+            return res.status(500).json({ 
+                success: false,
+                error: 'Failed to fetch documents', 
+                details: error.message 
             });
         }
 
+        // Enrich documents with doctor information
+        const enrichedDocuments = [];
+        for (const doc of (documents || [])) {
+            let enrichedDoc = { ...doc };
+            
+            // Get doctor info if doctor_id exists
+            if (doc.doctor_id) {
+                try {
+                    const { data: doctor, error: doctorError } = await supabase
+                        .from('doctors')
+                        .select('doctor_name, qualifications')
+                        .eq('id', doc.doctor_id)
+                        .single();
+                        
+                    if (!doctorError && doctor) {
+                        enrichedDoc.doctor_name = doctor.doctor_name;
+                        enrichedDoc.doctor_qualifications = doctor.qualifications;
+                    }
+                } catch (doctorErr) {
+                    console.warn(`Failed to fetch doctor info for document ${doc.id}:`, doctorErr);
+                }
+            }
+            
+            enrichedDocuments.push(enrichedDoc);
+        }
+
+        console.log(`[DEBUG] Successfully fetched ${enrichedDocuments.length} documents for patient ${patientId}`);
+
         res.json({
             success: true,
-            data: documents || [],
+            data: enrichedDocuments,
             pagination: {
                 page: parseInt(page),
                 limit: parseInt(limit),
-                total: documents?.length || 0
-            },
-            source: 'function'
+                total: enrichedDocuments.length
+            }
         });
     } catch (error) {
-        console.error('Error fetching patient documents:', error);
+        console.error('[ERROR] Unexpected error fetching patient documents:', error);
         res.status(500).json({ 
-            success: false,
-            error: 'Failed to fetch documents',
-            details: error.message 
+            success: false, 
+            error: 'Failed to fetch documents', 
+            details: error.message || error.toString()
         });
     }
 });

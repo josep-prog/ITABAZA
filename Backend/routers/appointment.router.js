@@ -401,6 +401,39 @@ appointmentRouter.get("/realtime", async (req, res) => {
   }
 });
 
+// Test route for doctor appointments (fallback)
+appointmentRouter.get("/appointments-test/:doctorId", async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    console.log('Test route: Fetching appointments for doctor ID:', doctorId);
+    
+    const appointments = await AppointmentModel.findByDoctorId(doctorId);
+    
+    if (!appointments || appointments.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No appointments found for this doctor (test route)",
+        appointments: [],
+        count: 0
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: "Doctor appointments retrieved successfully (test route)",
+      appointments: appointments,
+      count: appointments.length
+    });
+  } catch (error) {
+    console.error("Error getting doctor appointments (test route):", error);
+    res.status(500).json({
+      success: false,
+      message: "Error getting doctor appointments (test route)",
+      error: error.message
+    });
+  }
+});
+
 // Create a pending appointment (no authentication required)
 appointmentRouter.post("/create-pending", async (req, res) => {
   try {

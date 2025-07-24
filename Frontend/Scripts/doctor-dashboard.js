@@ -1,5 +1,5 @@
-// Base URL configuration
-const baseURL = 'http://127.0.0.1:8080';
+// Base URL configuration - now uses relative paths for deployment
+const baseURL = '';
 
 // Global variables
 let currentDoctorInfo = null;
