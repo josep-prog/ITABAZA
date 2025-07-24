@@ -1022,7 +1022,7 @@
                 }
                 
                 // Upload to backend API
-                const response = await fetch('http://localhost:8080/audio/upload-voice-recording', {
+                const response = await fetch('/audio/upload-voice-recording', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`

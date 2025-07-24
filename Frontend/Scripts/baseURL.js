@@ -1,5 +1,5 @@
-// Base URL for API endpoints
-export const baseURL = 'http://localhost:8080';
+// Base URL for API endpoints - now uses relative paths for deployment
+export const baseURL = '';
 
 // API endpoints
 export const API_ENDPOINTS = {
