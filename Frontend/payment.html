@@ -639,7 +639,10 @@
             };
 
             // Send to backend
-            fetch('http://localhost:8080/appointment/create-pending', {
+            const API_URL = window.location.hostname === 'localhost' 
+                ? 'http://localhost:8080' 
+                : 'https://itabaza.vercel.app';
+            fetch(`${API_URL}/appointment/create-pending`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(appointmentData)

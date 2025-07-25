@@ -860,8 +860,10 @@
     </div>
     
     <script>
-        // API Configuration - Backend runs on port 8080
-        const API_BASE_URL = 'http://localhost:8080';
+        // API Configuration - Use production URL when deployed
+        const API_BASE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:8080' 
+            : 'https://itabaza.vercel.app';
         
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {

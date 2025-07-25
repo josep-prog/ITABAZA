@@ -1022,7 +1022,10 @@
                 }
                 
                 // Upload to backend API
-                const response = await fetch('http://localhost:8080/audio/upload-voice-recording', {
+                const API_URL = window.location.hostname === 'localhost' 
+                    ? 'http://localhost:8080' 
+                    : 'https://itabaza.vercel.app';
+                const response = await fetch(`${API_URL}/audio/upload-voice-recording`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`

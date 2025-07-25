@@ -6,9 +6,14 @@ const nodemailer = require("nodemailer");
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
-// Configure CORS for frontend running on port 3000
+// Configure CORS for both development and production
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://0.0.0.0:3000'],
+    origin: [
+        'http://localhost:3000', 
+        'http://127.0.0.1:3000', 
+        'http://0.0.0.0:3000',
+        'https://itabaza-2qjt.vercel.app'
+    ],
     credentials: true,
     optionsSuccessStatus: 200,
     allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
