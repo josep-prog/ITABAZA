@@ -132,7 +132,60 @@ function showNoDoctors(message = "No doctors available at the moment.") {
     `;
 }
 
-// Enhanced data fetching with caching and retry logic
+function showServiceWakeup() {
+    isLoading = true;
+    docsCont.innerHTML = `
+        <div class="service-wakeup" style="text-align: center; padding: 50px;">
+            <div style="color: #ffc107; font-size: 48px; margin-bottom: 20px;">⏰</div>
+            <h3 style="color: #ffc107; margin-bottom: 10px;">Waking Up Service</h3>
+            <p style="color: #666; margin-bottom: 20px;">
+                The server is starting up. This usually takes 30-60 seconds for the first request.
+            </p>
+            <div class="progress-bar" style="width: 100%; height: 4px; background: #eee; border-radius: 2px; overflow: hidden; margin-bottom: 20px;">
+                <div class="progress-fill" style="height: 100%; background: #ffc107; width: 0%; animation: progress 45s linear;"></div>
+            </div>
+            <p style="color: #999; font-size: 14px;">Please wait while we connect to the server...</p>
+        </div>
+        <style>
+            @keyframes progress {
+                0% { width: 0%; }
+                100% { width: 100%; }
+            }
+        </style>
+    `;
+}
+
+async function wakeUpBackend() {
+    try {
+        console.log('Attempting to wake up backend service...');
+        const response = await fetch(`${baseURL}/api/health`, {
+            method: 'GET',
+            signal: AbortSignal.timeout(60000) // 60 second timeout for wake-up
+        });
+        
+        if (response.ok) {
+            console.log('Backend service is awake');
+            return true;
+        }
+    } catch (error) {
+        console.log('Backend wake-up failed:', error.message);
+    }
+    return false;
+}
+
+function getErrorMessage(error) {
+    if (error.name === 'AbortError' || error.message.includes('timeout')) {
+        return 'The server is taking longer than expected to respond. This may be due to the service starting up. Please wait a moment and try again.';
+    } else if (error.name === 'TypeError') {
+        return 'Unable to connect to the server. Please check your internet connection and try again.';
+    } else if (error.message.includes('HTTP 5')) {
+        return 'The server is experiencing issues. Please try again in a few moments.';
+    } else {
+        return `Unable to load doctors: ${error.message}. Please try again.`;
+    }
+}
+
+// Enhanced data fetching with wake-up and extended timeouts
 async function getdata(retryCount = 0) {
     if (isLoading) return;
     
@@ -144,13 +197,27 @@ async function getdata(retryCount = 0) {
         return;
     }
     
-    showLoading();
+    // Show service wake-up message for first attempt
+    if (retryCount === 0) {
+        showServiceWakeup();
+    } else {
+        showLoading();
+    }
     
     try {
+        // First, try to wake up the backend service
+        if (retryCount === 0) {
+            console.log('Waking up backend service...');
+            await wakeUpBackend();
+            
+            // Wait a moment for service to fully wake up
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        
         const response = await fetch(`${baseURL}/doctor/availableDoctors`, {
             method: 'GET',
             headers: getAuthHeaders(),
-            signal: AbortSignal.timeout(10000) // 10 second timeout
+            signal: AbortSignal.timeout(60000) // Extended timeout for cold starts
         });
         
         if (!response.ok) {
@@ -176,14 +243,25 @@ async function getdata(retryCount = 0) {
         console.error('Error fetching doctors:', error);
         hideLoading();
         
-        // Retry logic for network errors
-        if (retryCount < 3 && (error.name === 'TypeError' || error.name === 'AbortError')) {
-            console.log(`Retrying... Attempt ${retryCount + 1}`);
-            setTimeout(() => getdata(retryCount + 1), 2000 * (retryCount + 1));
-            return;
+        // Enhanced retry logic for different error types
+        if (retryCount < 3) {
+            const isTimeoutError = error.name === 'AbortError' || error.message.includes('timeout');
+            const isNetworkError = error.name === 'TypeError';
+            
+            if (isTimeoutError || isNetworkError) {
+                console.log(`Retrying... Attempt ${retryCount + 1}`);
+                
+                // Progressive backoff: 5s, 10s, 15s
+                const delay = 5000 * (retryCount + 1);
+                
+                setTimeout(() => getdata(retryCount + 1), delay);
+                return;
+            }
         }
         
-        showError(`Failed to load doctors: ${error.message}. Please check your internet connection and try again.`);
+        // Show user-friendly error message
+        const errorMessage = getErrorMessage(error);
+        showError(errorMessage);
     }
 }
 
