@@ -274,6 +274,7 @@ body {
     justify-content: space-between;
     align-items: center;
     transition: background-color 0.3s ease;
+    gap: 1rem;
 }
 
 .appointment-item:hover {
@@ -314,6 +315,189 @@ body {
 .status-completed {
     background-color: #d4edda;
     color: #155724;
+}
+
+/* Appointment Action Buttons */
+.appointment-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.btn-view,
+.btn-complete {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    text-decoration: none;
+}
+
+.btn-view {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-view:hover {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-complete {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-complete:hover:not(:disabled) {
+    background-color: #1e7e34;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-complete:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Appointment Modal Styles */
+.swal-modal.appointment-details-modal {
+    max-width: 800px;
+    width: 90vw;
+    padding: 0;
+}
+
+.appointment-modal {
+    text-align: left;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    margin: -20px -20px 20px -20px;
+    border-radius: 5px 5px 0 0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 0 20px 20px 20px;
+}
+
+.patient-details-section,
+.problem-description-section,
+.appointment-info-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.patient-details-section h3,
+.problem-description-section h3,
+.appointment-info-section h3 {
+    color: #2c3e50;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.detail-item label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.detail-item span {
+    color: #2c3e50;
+    padding: 0.5rem;
+    background-color: white;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.problem-text {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    line-height: 1.6;
+    color: #2c3e50;
+    min-height: 60px;
+}
+
+.status {
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.payment-status {
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.payment-status.paid {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.payment-status.unpaid {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Empty State and Error Message */
+.empty-state,
+.error-message {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6c757d;
+}
+
+.empty-state i,
+.error-message i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state p,
+.error-message p {
+    font-size: 1.1rem;
+    margin: 0;
 }
 
 /* Quick Actions */
@@ -482,5 +666,32 @@ body {
         flex-direction: column;
         gap: 0.5rem;
         align-items: flex-start;
+    }
+    
+    .appointment-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .btn-view,
+    .btn-complete {
+        flex: 1;
+        justify-content: center;
+        min-width: 80px;
+    }
+    
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-header {
+        padding: 1rem;
+        margin: -15px -15px 15px -15px;
+    }
+    
+    .patient-details-section,
+    .problem-description-section,
+    .appointment-info-section {
+        padding: 1rem;
     }
 }

@@ -328,6 +328,82 @@ appointmentRouter.get("/doctor/:doctorId", async (req, res) => {
   }
 });
 
+// Alternative route for byDoctor (for frontend compatibility)
+appointmentRouter.get("/byDoctor/:doctorId", async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    const appointments = await AppointmentModel.findByDoctorId(doctorId);
+    
+    res.status(200).json(appointments || []);
+  } catch (error) {
+    console.error("Error getting doctor appointments:", error);
+    res.status(500).json({ message: "Error getting doctor appointments", error: error.message });
+  }
+});
+
+// Get appointment details for viewing
+appointmentRouter.get("/view/:appointmentId", async (req, res) => {
+  try {
+    const appointment = await AppointmentModel.findById(req.params.appointmentId);
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+    
+    // Get patient details
+    let patientDetails = null;
+    if (appointment.patient_id) {
+      try {
+        patientDetails = await UserModel.findById(appointment.patient_id);
+      } catch (error) {
+        console.warn("Could not fetch patient details:", error);
+      }
+    }
+    
+    // Get doctor details
+    let doctorDetails = null;
+    if (appointment.doctor_id) {
+      try {
+        doctorDetails = await DoctorModel.findById(appointment.doctor_id);
+      } catch (error) {
+        console.warn("Could not fetch doctor details:", error);
+      }
+    }
+    
+    res.status(200).json({
+      success: true,
+      appointment: appointment,
+      patient: patientDetails,
+      doctor: doctorDetails
+    });
+  } catch (error) {
+    console.error("Error getting appointment details:", error);
+    res.status(500).json({ message: "Error getting appointment details", error: error.message });
+  }
+});
+
+// Mark appointment as complete
+appointmentRouter.patch("/complete/:appointmentId", async (req, res) => {
+  try {
+    const appointment = await AppointmentModel.findById(req.params.appointmentId);
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+    
+    const updatedAppointment = await AppointmentModel.update(req.params.appointmentId, {
+      status: 'completed'
+    });
+    
+    res.status(200).json({
+      success: true,
+      message: "Appointment marked as complete",
+      appointment: updatedAppointment
+    });
+  } catch (error) {
+    console.error("Error completing appointment:", error);
+    res.status(500).json({ message: "Error completing appointment", error: error.message });
+  }
+});
+
 // Get all appointments (Admin)
 appointmentRouter.get("/all", async (req, res) => {
   try {

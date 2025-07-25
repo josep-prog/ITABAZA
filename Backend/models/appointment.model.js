@@ -22,24 +22,13 @@ const AppointmentModel = {
     return appointment;
   },
 
-  // Find appointment by ID (using both id and appointment_id for compatibility)
+  // Find appointment by ID (using id field primarily)
   async findById(id) {
-    let { data, error } = await supabase
+    const { data, error } = await supabase
       .from(TABLE_NAME)
       .select('*')
-      .eq('appointment_id', id)
+      .eq('id', id)
       .single();
-    
-    // If not found, try with 'id' field as well
-    if (error && error.code === 'PGRST116') {
-      const result = await supabase
-        .from(TABLE_NAME)
-        .select('*')
-        .eq('id', id)
-        .single();
-      data = result.data;
-      error = result.error;
-    }
     
     if (error && error.code !== 'PGRST116') throw error;
     return data;
