@@ -832,9 +832,28 @@ function showAlert(message, type) {
 }
 
 // Action functions
-function viewAppointment(appointmentId) {
-    showAlert('Viewing appointment details...', 'info');
-    // Implement appointment details view
+async function viewAppointment(appointmentId) {
+    try {
+        const response = await fetch(`${baseURL}/appointment/view/${appointmentId}`, {
+            method: 'GET',
+            headers: getDoctorAuthHeaders(),
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch appointment details');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAppointmentModal(data.appointment, data.patient);
+        } else {
+            showAlert('Failed to load appointment details', 'error');
+        }
+    } catch (error) {
+        console.error('Error viewing appointment:', error);
+        showAlert('Failed to load appointment details', 'error');
+    }
 }
 
 function updateAppointmentStatus(appointmentId, newStatus) {
