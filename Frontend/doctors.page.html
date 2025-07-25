@@ -81,6 +81,21 @@
 <script type="module" src="./Scripts/footer.js"></script>
 <script type="module" src="./Scripts/responsive-utils.js"></script>
 
+<!-- Mobile optimization script -->
+<script>
+if (window.innerWidth <= 768) {
+    document.body.classList.add('mobile-viewport');
+    const style = document.createElement('style');
+    style.textContent = `
+        @media (max-width: 768px) {
+            .doc-search-bar { width: 100% !important; flex-direction: column !important; }
+            #doctors-cont { grid-template-columns: 1fr !important; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+</script>
+
 </html>
 
 <script type="module" src="./Scripts/doctor.js"></script>

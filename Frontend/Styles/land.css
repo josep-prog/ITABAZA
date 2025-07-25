@@ -18,6 +18,15 @@ li{
     width:77%;
     margin: 4.5rem auto;
 }
+
+/* Mobile override for land sections */
+@media screen and (max-width: 768px) {
+    .land-sections {
+        width: 95%;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+}
 #land-video{
     width:100%;
     /* border:1px solid red; */
@@ -35,6 +44,22 @@ li{
     display:grid;
     grid-template-columns: repeat(5,1fr);
     gap: 3rem;
+}
+
+/* Mobile responsive feature container */
+@media screen and (max-width: 768px) {
+    #feature-cont {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 0 0.5rem;
+    }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    #feature-cont {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
 }
 .feature-card{
     box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
@@ -72,6 +97,23 @@ li{
     grid-template-columns: repeat(5,1fr);
     gap: 3rem;
     margin:30px 0;
+}
+
+/* Mobile responsive consult body */
+@media screen and (max-width: 768px) {
+    #consult-body {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin: 20px 0;
+        padding: 0 0.5rem;
+    }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    #consult-body {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+    }
 }
 .consult-card{
     border-radius: 10px;
@@ -144,6 +186,7 @@ li{
   justify-content: center;
   align-items: center;
   height: 30px;
+  padding: 0 1rem;
 }
 
 .download-button {
@@ -158,6 +201,18 @@ li{
   text-decoration: none;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s ease, transform 0.2s ease;
+  max-width: 100%;
+  text-align: center;
+}
+
+/* Mobile responsive download button */
+@media screen and (max-width: 768px) {
+  .download-button {
+    padding: 12px 20px;
+    font-size: 16px;
+    width: 90%;
+    max-width: 280px;
+  }
 }
 
 .download-button:hover {

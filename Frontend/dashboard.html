@@ -418,6 +418,21 @@
     </div>
     <script type="module" src="./Scripts/admin_dash.js"></script>
     <script type="module" src="./Scripts/responsive-utils.js"></script>
+    
+    <!-- Admin dashboard mobile optimization -->
+    <script>
+    if (window.innerWidth <= 768) {
+        document.body.classList.add('mobile-viewport');
+        const style = document.createElement('style');
+        style.textContent = `
+            @media (max-width: 768px) {
+                .container { grid-template-columns: 1fr !important; }
+                .status-bar { grid-template-columns: 1fr !important; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    </script>
 
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>

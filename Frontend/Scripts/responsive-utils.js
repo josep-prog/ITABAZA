@@ -17,55 +17,74 @@ class ResponsiveManager {
     }
 
     createMobileMenuToggle() {
-        // Create hamburger menu if it doesn't exist
-        if (!document.getElementById('hamb')) {
-            const navbar = document.getElementById('nav-cont');
-            if (navbar) {
-                const hambIcon = document.createElement('div');
-                hambIcon.id = 'hamb';
-                hambIcon.innerHTML = '<i class="fas fa-bars"></i>';
-                hambIcon.style.cssText = `
-                    display: none;
-                    cursor: pointer;
-                    color: white;
-                    font-size: 1.5rem;
-                    padding: 0.5rem;
-                `;
-                
-                // Insert hamburger before nav-menu
-                const navMenu = document.getElementById('nav-menu');
-                if (navMenu) {
-                    navbar.insertBefore(hambIcon, navMenu);
+        // Wait for DOM to be ready
+        const initMenu = () => {
+            // Create hamburger menu if it doesn't exist
+            if (!document.getElementById('hamb')) {
+                const navbar = document.getElementById('nav-cont');
+                if (navbar) {
+                    const hambIcon = document.createElement('div');
+                    hambIcon.id = 'hamb';
+                    hambIcon.innerHTML = '<i class="fas fa-bars"></i>';
+                    hambIcon.style.cssText = `
+                        display: none;
+                        cursor: pointer;
+                        color: white;
+                        font-size: 1.5rem;
+                        padding: 0.5rem;
+                        order: 1;
+                    `;
+                    
+                    // Insert hamburger as first child after logo
+                    const navLogo = document.getElementById('nav-logo');
+                    if (navLogo && navLogo.nextSibling) {
+                        navbar.insertBefore(hambIcon, navLogo.nextSibling);
+                    } else {
+                        navbar.appendChild(hambIcon);
+                    }
                 }
             }
-        }
 
-        // Add click event to hamburger menu
-        const hambMenu = document.getElementById('hamb');
-        const navMenu = document.getElementById('nav-menu');
-        
-        if (hambMenu && navMenu) {
-            hambMenu.addEventListener('click', () => {
-                navMenu.classList.toggle('show');
-                this.toggleMenuIcon(hambMenu);
-            });
-
-            // Close menu when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!hambMenu.contains(e.target) && !navMenu.contains(e.target)) {
-                    navMenu.classList.remove('show');
-                    this.resetMenuIcon(hambMenu);
-                }
-            });
-
-            // Close menu when clicking on menu items
-            const menuItems = navMenu.querySelectorAll('li');
-            menuItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    navMenu.classList.remove('show');
-                    this.resetMenuIcon(hambMenu);
+            // Add click event to hamburger menu
+            const hambMenu = document.getElementById('hamb');
+            const navMenu = document.getElementById('nav-menu');
+            
+            if (hambMenu && navMenu) {
+                // Remove existing listeners to prevent duplicates
+                hambMenu.replaceWith(hambMenu.cloneNode(true));
+                const newHambMenu = document.getElementById('hamb');
+                
+                newHambMenu.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    navMenu.classList.toggle('show');
+                    this.toggleMenuIcon(newHambMenu);
                 });
-            });
+
+                // Close menu when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!newHambMenu.contains(e.target) && !navMenu.contains(e.target)) {
+                        navMenu.classList.remove('show');
+                        this.resetMenuIcon(newHambMenu);
+                    }
+                });
+
+                // Close menu when clicking on menu items
+                const menuItems = navMenu.querySelectorAll('li');
+                menuItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        navMenu.classList.remove('show');
+                        this.resetMenuIcon(newHambMenu);
+                    });
+                });
+            }
+        };
+        
+        // Try to initialize immediately, or wait for navbar to load
+        if (document.getElementById('nav-cont')) {
+            initMenu();
+        } else {
+            // Wait for navbar to be loaded by navbar.js
+            setTimeout(initMenu, 100);
         }
     }
 

@@ -262,4 +262,26 @@ window.addEventListener('beforeinstallprompt', (e) => {
 <script type="module" src="./Scripts/navbar.js"></script>
 <script type="module" src="./Scripts/footer.js"></script>
 <script type="module" src="./Scripts/responsive-utils.js"></script>
+
+<!-- Additional mobile optimizations -->
+<script>
+// Immediate mobile optimizations
+if (window.innerWidth <= 768) {
+    document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+    
+    // Add mobile class immediately
+    document.body.classList.add('mobile-viewport');
+    
+    // Force mobile styles application
+    const style = document.createElement('style');
+    style.textContent = `
+        @media (max-width: 768px) {
+            .land-sections { width: 95% !important; margin: 2rem auto !important; }
+            #feature-cont { grid-template-columns: 1fr !important; }
+            #consult-body { grid-template-columns: 1fr !important; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+</script>
 </html>
