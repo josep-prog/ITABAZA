@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Test - iTABAZA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .loading {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .info {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #0d47a1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 CORS & API Connection Test</h1>
+        
+        <div class="info">
+            <strong>Frontend URL:</strong> <span id="frontendUrl"></span><br>
+            <strong>Backend URL:</strong> <span id="backendUrl"></span>
+        </div>
+
+        <div class="test-section">
+            <h3>1. CORS Test</h3>
+            <p>Tests if CORS is configured correctly for basic API access.</p>
+            <button onclick="testCORS()">Test CORS</button>
+            <div id="corsResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Departments API Test</h3>
+            <p>Tests the specific API endpoint that was failing.</p>
+            <button onclick="testDepartments()">Test Departments API</button>
+            <div id="departmentsResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Doctors API Test</h3>
+            <p>Tests the doctors API endpoint.</p>
+            <button onclick="testDoctors()">Test Doctors API</button>
+            <div id="doctorsResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Health Check</h3>
+            <p>Tests the backend health endpoint.</p>
+            <button onclick="testHealth()">Test Health</button>
+            <div id="healthResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. Clear Cache & Reload</h3>
+            <p>Clear service worker cache and reload the page.</p>
+            <button onclick="clearCacheAndReload()">Clear Cache & Reload</button>
+            <div id="cacheResult" class="result"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { baseURL } from './Scripts/baseURL.js';
+        
+        // Display current URLs
+        document.getElementById('frontendUrl').textContent = window.location.origin;
+        document.getElementById('backendUrl').textContent = baseURL;
+        
+        // Test functions
+        window.testCORS = async function() {
+            const resultDiv = document.getElementById('corsResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'Testing CORS...';
+            
+            try {
+                const response = await fetch(`${baseURL}/api/cors-test`);
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ CORS Test Successful!\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ CORS Test Failed!\n\nError: ${error.message}\n\nThis means the backend is not accessible or CORS is not configured correctly.`;
+            }
+        };
+        
+        window.testDepartments = async function() {
+            const resultDiv = document.getElementById('departmentsResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'Testing Departments API...';
+            
+            try {
+                const response = await fetch(`${baseURL}/department/all`);
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Departments API Successful!\n\nFound ${data.departments?.length || 0} departments:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Departments API Failed!\n\nError: ${error.message}`;
+            }
+        };
+        
+        window.testDoctors = async function() {
+            const resultDiv = document.getElementById('doctorsResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'Testing Doctors API...';
+            
+            try {
+                const response = await fetch(`${baseURL}/doctor/availableDoctors`);
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Doctors API Successful!\n\nFound ${data.doctor?.length || 0} doctors:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Doctors API Failed!\n\nError: ${error.message}`;
+            }
+        };
+        
+        window.testHealth = async function() {
+            const resultDiv = document.getElementById('healthResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'Testing Health API...';
+            
+            try {
+                const response = await fetch(`${baseURL}/api/health`);
+                const data = await response.json();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Health Check Successful!\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Health Check Failed!\n\nError: ${error.message}`;
+            }
+        };
+        
+        window.clearCacheAndReload = async function() {
+            const resultDiv = document.getElementById('cacheResult');
+            resultDiv.className = 'result loading';
+            resultDiv.textContent = 'Clearing cache...';
+            
+            try {
+                // Clear service worker cache
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                }
+                
+                // Unregister service worker
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(registrations.map(registration => registration.unregister()));
+                }
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = '✅ Cache cleared! Reloading in 2 seconds...';
+                
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 2000);
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Cache clear failed: ${error.message}`;
+            }
+        };
+    </script>
+</body>
+</html>
