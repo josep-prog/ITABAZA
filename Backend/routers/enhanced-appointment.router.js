@@ -325,9 +325,25 @@ enhancedAppointmentRouter.get("/details/:appointmentId", authenticate, async (re
   }
 });
 
-// Helper function to send enhanced confirmation email
+// Room management system for Gihundwe Hospital
+const HOSPITAL_ROOMS = {
+  total: 20,
+  rooms: Array.from({length: 20}, (_, i) => `Room-${String(i + 1).padStart(2, '0')}`)
+};
+
+// Simple room assignment based on appointment ID (ensures uniqueness per appointment)
+function assignRoom(appointmentId) {
+  const hash = appointmentId.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  const roomIndex = Math.abs(hash) % HOSPITAL_ROOMS.total;
+  return HOSPITAL_ROOMS.rooms[roomIndex];
+}
+
+// Helper function to send enhanced confirmation email with room assignment
 async function sendEnhancedConfirmationEmail(patientEmail, patientFirstName, docFirstName, appointmentData) {
-  const transporter = nodemailer.createTransport({
+  const transporter = nodemailer.createTransporter({
     service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
@@ -337,6 +353,25 @@ async function sendEnhancedConfirmationEmail(patientEmail, patientFirstName, doc
   
   const consultationTypeText = appointmentData.consultation_type === 'video-call' ? 'Video Call' : 'In-Person';
   const paymentStatus = appointmentData.payment_status ? 'Paid' : 'Pending';
+  
+  // Generate room assignment for in-person appointments
+  const assignedRoom = appointmentData.consultation_type === 'in-person' 
+    ? assignRoom(appointmentData.patient_id + appointmentData.appointment_date) 
+    : null;
+  
+  // Venue information
+  const venueInfo = appointmentData.consultation_type === 'video-call' 
+    ? {
+        type: 'Video Call',
+        url: 'https://itabaza-videocall.onrender.com/',
+        location: 'Online Meeting'
+      }
+    : {
+        type: 'In-Person Visit',
+        url: 'https://itabaza-videocall.onrender.com/',  // Same URL as requested
+        location: 'Gihundwe Hospital',
+        room: assignedRoom
+      };
   
   const mailOptions = {
     from: process.env.EMAIL_USER,
@@ -367,8 +402,16 @@ async function sendEnhancedConfirmationEmail(patientEmail, patientFirstName, doc
                   <h3 style="color: #0077c0; margin-top: 0;">Appointment Details</h3>
                   <table style="width: 100%; border-collapse: collapse;">
                     <tr>
+                      <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Patient:</strong></td>
+                      <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${patientFirstName}</td>
+                    </tr>
+                    <tr>
                       <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Doctor:</strong></td>
                       <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Dr. ${docFirstName}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Problem Description:</strong></td>
+                      <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${appointmentData.problem_description || 'Not specified'}</td>
                     </tr>
                     <tr>
                       <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Date:</strong></td>
@@ -381,6 +424,13 @@ async function sendEnhancedConfirmationEmail(patientEmail, patientFirstName, doc
                     <tr>
                       <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Type:</strong></td>
                       <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${consultationTypeText}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Venue:</strong></td>
+                      <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                        ${venueInfo.location}${venueInfo.room ? ` - ${venueInfo.room}` : ''}<br>
+                        <a href="${venueInfo.url}" style="color: #0077c0; text-decoration: none;">${venueInfo.url}</a>
+                      </td>
                     </tr>
                     <tr>
                       <td style="padding: 8px 0;"><strong>Payment Status:</strong></td>

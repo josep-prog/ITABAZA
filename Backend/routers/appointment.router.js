@@ -167,8 +167,44 @@ appointmentRouter.post("/create/:doctorId", authenticate, async (req, res) => {
     
     const createdAppointment = await AppointmentModel.create(appointmentData);
     
+    // Room management system for Gihundwe Hospital
+    const HOSPITAL_ROOMS = {
+      total: 20,
+      rooms: Array.from({length: 20}, (_, i) => `Room-${String(i + 1).padStart(2, '0')}`)
+    };
+    
+    // Simple room assignment based on appointment ID (ensures uniqueness per appointment)
+    function assignRoom(appointmentId) {
+      const hash = appointmentId.split('').reduce((a, b) => {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a;
+      }, 0);
+      const roomIndex = Math.abs(hash) % HOSPITAL_ROOMS.total;
+      return HOSPITAL_ROOMS.rooms[roomIndex];
+    }
+    
+    // Generate room assignment for in-person appointments
+    const appointmentType = req.body.consultationType || 'in-person';
+    const assignedRoom = appointmentType === 'in-person' 
+      ? assignRoom(patientId + appointmentDate) 
+      : null;
+    
+    // Venue information
+    const venueInfo = appointmentType === 'video-call' 
+      ? {
+          type: 'Video Call',
+          url: 'https://itabaza-videocall.onrender.com/',
+          location: 'Online Meeting'
+        }
+      : {
+          type: 'In-Person Visit',
+          url: 'https://itabaza-videocall.onrender.com/',  // Same URL as requested
+          location: 'Gihundwe Hospital',
+          room: assignedRoom
+        };
+    
     // !!-NODE MAILER-//
-    const transporter = nodemailer.createTransport({
+    const transporter = nodemailer.createTransporter({
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
@@ -176,33 +212,108 @@ appointmentRouter.post("/create/:doctorId", authenticate, async (req, res) => {
       },
     });
     
+    const consultationTypeText = appointmentType === 'video-call' ? 'Video Call' : 'In-Person';
+    const paymentStatus = Boolean(paymentDetails.transactionId) ? 'Paid' : 'Pending';
+    
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: patientEmail,
-      subject: "iTABAZA Appointment Confirm",
+      subject: `iTABAZA ${consultationTypeText} Appointment Confirmation`,
       html: `
       <!DOCTYPE html>
         <html>
           <head>
-            <title>Example Email Template</title>
+            <title>Appointment Confirmation</title>
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           </head>
-          <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 18px; line-height: 1.5; color: #333; padding: 20px;">
-            <table style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #fff; border-collapse: collapse;">
+          <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.6; color: #333; padding: 20px;">
+            <table style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #fff; border-collapse: collapse; border: 1px solid #ddd;">
               <tr>
-                <td style="background-color: #0077c0; text-align: center; padding: 10px;">
+                <td style="background-color: #0077c0; text-align: center; padding: 20px;">
                   <h1 style="font-size: 28px; color: #fff; margin: 0;">iTABAZA</h1>
+                  <p style="color: #fff; margin: 5px 0 0 0;">Healthcare Excellence</p>
                 </td>
               </tr>
               <tr>
-                <td style="padding: 20px;">
-                  <h2 style="font-size: 24px; color: #0077c0; margin-top: 0;">Hello, [${patientFirstName}]</h2>
-                  <h5 style="margin-bottom: 20px;">Thank you for your recent appointment with ${docFirstName}. Your appointment has been booked for [${problemDescription}] on [${appointmentDate}]</h5>
-                  <p style="margin-bottom: 20px;">If you do have any issues, please don't hesitate to contact our customer service team. We're always happy to help.</p>
-                  <p style="margin-bottom: 20px;">Thank you for choosing iTABAZA Services</p>
-                  <p style="margin-bottom: 0;">Best regards,</p>
-                  <p style="margin-bottom: 20px;">iTABAZA</p>
+                <td style="padding: 30px;">
+                  <h2 style="font-size: 24px; color: #0077c0; margin-top: 0;">Hello, ${patientFirstName}!</h2>
+                  <p style="margin-bottom: 20px;">Your ${consultationTypeText} appointment has been successfully booked and is now received. It will be confirmed after completing payment.</p>
+                  
+                  <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #0077c0; margin-top: 0;">Appointment Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                      <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Patient:</strong></td>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${patientFirstName}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Doctor:</strong></td>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Dr. ${docFirstName}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Problem Description:</strong></td>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${problemDescription || 'Not specified'}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Date:</strong></td>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${appointmentDate}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Time:</strong></td>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${slotTime}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Type:</strong></td>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${consultationTypeText}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Venue:</strong></td>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                          ${venueInfo.location}${venueInfo.room ? ` - ${venueInfo.room}` : ''}<br>
+                          <a href="${venueInfo.url}" style="color: #0077c0; text-decoration: none;">${venueInfo.url}</a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0;"><strong>Payment Status:</strong></td>
+                        <td style="padding: 8px 0; color: ${paymentStatus === 'Paid' ? '#28a745' : '#ffc107'}; font-weight: bold;">${paymentStatus}</td>
+                      </tr>
+                    </table>
+                  </div>
+                  
+                  ${appointmentType === 'video-call' ? `
+                  <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="color: #1976d2; margin-top: 0;">Video Call Instructions</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                      <li>Ensure you have a stable internet connection</li>
+                      <li>Find a quiet, well-lit environment</li>
+                      <li>Have your medical history ready</li>
+                      <li>Join the call 5 minutes before your appointment time</li>
+                    </ul>
+                  </div>
+                  ` : `
+                  <div style="background-color: #e8f5e8; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <h4 style="color: #2e7d32; margin-top: 0;">In-Person Visit Instructions</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                      <li>Arrive 15 minutes before your appointment time</li>
+                      <li>Bring your ID and any relevant medical documents</li>
+                      <li>Wear a mask and follow COVID-19 protocols</li>
+                      <li>Your assigned room is: <strong>${venueInfo.room || 'To be assigned'}</strong></li>
+                    </ul>
+                  </div>
+                  `}
+                  
+                  <p style="margin-bottom: 20px;">If you have any questions or need to reschedule, please contact our customer service team.</p>
+                  <p style="margin-bottom: 20px;">Thank you for choosing iTABAZA!</p>
+                  
+                  <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <p style="margin: 0; color: #666; font-size: 14px;">
+                      Best regards,<br>
+                      <strong>iTABAZA Team</strong><br>
+                      Email: support@itabaza.com<br>
+                      Phone: +250 123 456 789
+                    </p>
+                  </div>
                 </td>
               </tr>
             </table>
