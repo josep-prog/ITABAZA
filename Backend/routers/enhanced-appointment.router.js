@@ -143,7 +143,7 @@ enhancedAppointmentRouter.post("/create/:doctorId", authenticate, async (req, re
       symptoms: Array.isArray(symptoms) ? symptoms : [],
       medical_history: medicalHistory,
       medications: medications,
-      status: false,
+      status: 'pending',
       payment_status: false,
       // Payment details
       payment_transaction_id: paymentDetails.transactionId || null,
@@ -343,7 +343,7 @@ function assignRoom(appointmentId) {
 
 // Helper function to send enhanced confirmation email with room assignment
 async function sendEnhancedConfirmationEmail(patientEmail, patientFirstName, docFirstName, appointmentData) {
-  const transporter = nodemailer.createTransporter({
+  const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,

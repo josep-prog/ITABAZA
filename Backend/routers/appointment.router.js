@@ -204,7 +204,7 @@ appointmentRouter.post("/create/:doctorId", authenticate, async (req, res) => {
         };
     
     // !!-NODE MAILER-//
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
