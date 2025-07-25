@@ -1,6 +1,6 @@
 // Base URL for API endpoints
 // Use production URL when deployed, localhost for development
-export const baseURL = process.env.NODE_ENV === 'production' || window.location.hostname !== 'localhost' 
+export const baseURL = window.location.hostname !== 'localhost' 
     ? 'https://itabaza.vercel.app' 
     : 'http://localhost:8080';
 
