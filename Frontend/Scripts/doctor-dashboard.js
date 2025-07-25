@@ -831,6 +831,275 @@ function showAlert(message, type) {
     }, 5000);
 }
 
+// Show appointment details modal
+function showAppointmentModal(appointment, patient) {
+    const modalContent = `
+        <div class="appointment-modal">
+            <div class="modal-header">
+                <h2>Appointment Details</h2>
+            </div>
+            <div class="modal-body">
+                <div class="patient-details-section">
+                    <h3><i class="fas fa-user"></i> Patient Details</h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <label>Name:</label>
+                            <span>${patient?.first_name || appointment.patient_first_name || 'N/A'} ${patient?.last_name || ''}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Email:</label>
+                            <span>${patient?.email || appointment.patient_email || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Phone:</label>
+                            <span>${patient?.mobile || appointment.patient_phone || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Age:</label>
+                            <span>${appointment.age_of_patient || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Gender:</label>
+                            <span>${appointment.gender || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Address:</label>
+                            <span>${appointment.address || 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="problem-description-section">
+                    <h3><i class="fas fa-notes-medical"></i> Problem Description</h3>
+                    <div class="problem-text">
+                        ${appointment.problem_description || 'No description provided'}
+                    </div>
+                </div>
+                
+                <div class="appointment-info-section">
+                    <h3><i class="fas fa-calendar-alt"></i> Appointment Information</h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <label>Date:</label>
+                            <span>${appointment.appointment_date || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Time:</label>
+                            <span>${appointment.slot_time || appointment.appointment_time || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Status:</label>
+                            <span class="status ${getStatusClass(appointment.status)}">
+                                ${getStatusText(appointment.status)}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Payment Status:</label>
+                            <span class="payment-status ${appointment.payment_status ? 'paid' : 'unpaid'}">
+                                ${appointment.payment_status ? 'Paid' : 'Unpaid'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Create and show modal using a simple alert-style modal
+    const modalDiv = document.createElement('div');
+    modalDiv.className = 'custom-modal-overlay';
+    modalDiv.innerHTML = `
+        <div class="custom-modal">
+            ${modalContent}
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCustomModal()">Close</button>
+                <button class="btn btn-primary" onclick="completeAppointment('${appointment.id}')">Mark Complete</button>
+            </div>
+        </div>
+    `;
+    
+    // Add styles for the modal
+    const style = document.createElement('style');
+    style.textContent = `
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        .custom-modal {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        .appointment-modal .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+        }
+        .appointment-modal .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        .appointment-modal .modal-body {
+            padding: 20px;
+        }
+        .patient-details-section, .problem-description-section, .appointment-info-section {
+            margin-bottom: 25px;
+        }
+        .patient-details-section h3, .problem-description-section h3, .appointment-info-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .detail-item label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .detail-item span {
+            color: #333;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .problem-text {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            line-height: 1.6;
+        }
+        .status.status-pending { background: #fff3cd; color: #856404; }
+        .status.status-confirmed { background: #d1ecf1; color: #0c5460; }
+        .status.status-completed { background: #d4edda; color: #155724; }
+        .payment-status.paid { background: #d4edda; color: #155724; }
+        .payment-status.unpaid { background: #f8d7da; color: #721c24; }
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.appendChild(modalDiv);
+    
+    // Close modal when clicking outside
+    modalDiv.addEventListener('click', function(e) {
+        if (e.target === modalDiv) {
+            closeCustomModal();
+        }
+    });
+}
+
+// Helper functions for modal
+function getStatusClass(status) {
+    switch (status) {
+        case 'completed': return 'status-completed';
+        case 'pending': return 'status-pending';
+        case 'confirmed': return 'status-confirmed';
+        case true: return 'status-completed';
+        case false: return 'status-pending';
+        default: return 'status-pending';
+    }
+}
+
+function getStatusText(status) {
+    switch (status) {
+        case 'completed': return 'Completed';
+        case 'pending': return 'Pending';
+        case 'confirmed': return 'Confirmed';
+        case true: return 'Completed';
+        case false: return 'Pending';
+        default: return 'Unknown';
+    }
+}
+
+// Close custom modal
+function closeCustomModal() {
+    const modal = document.querySelector('.custom-modal-overlay');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Complete appointment function
+async function completeAppointment(appointmentId) {
+    try {
+        const result = confirm('Are you sure you want to mark this appointment as completed?');
+        
+        if (result) {
+            const response = await fetch(`${baseURL}/appointment/complete/${appointmentId}`, {
+                method: 'PATCH',
+                headers: getDoctorAuthHeaders(),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to complete appointment');
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showAlert('Appointment marked as completed!', 'success');
+                closeCustomModal();
+                // Reload appointments to reflect the change
+                loadAppointments();
+                loadDashboardData();
+            } else {
+                showAlert('Failed to complete appointment', 'error');
+            }
+        }
+    } catch (error) {
+        console.error('Error completing appointment:', error);
+        showAlert('Failed to complete appointment', 'error');
+    }
+}
+
 // Action functions
 async function viewAppointment(appointmentId) {
     try {
@@ -1006,3 +1275,5 @@ window.updateAppointmentStatus = updateAppointmentStatus;
 window.viewDocument = viewDocument;
 window.deleteDocument = deleteDocument;
 window.viewTicket = viewTicket;
+window.completeAppointment = completeAppointment;
+window.closeCustomModal = closeCustomModal;
