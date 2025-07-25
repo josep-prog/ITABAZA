@@ -4,23 +4,69 @@ require("dotenv").config();
 const nodemailer = require("nodemailer");
 
 const app = express();
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
-// Configure CORS for production frontend on Vercel
+
+// Configure CORS first, before other middleware
 app.use(cors({
-    origin: [
-        'https://itabaza-2qjt.vercel.app',
-        'https://itabaza-2qjt.vercel.app/',
-        // Keep localhost for development
-        'http://localhost:3000', 
-        'http://127.0.0.1:3000', 
-        'http://0.0.0.0:3000'
-    ],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        const allowedOrigins = [
+            'https://itabaza-2qjt.vercel.app',
+            'https://itabaza-2qjt.vercel.app/',
+            'http://localhost:3000',
+            'http://127.0.0.1:3000',
+            'http://0.0.0.0:3000'
+        ];
+        
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        
+        // For debugging: log rejected origins
+        console.log('CORS: Rejected origin:', origin);
+        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(new Error(msg), false);
+    },
     credentials: true,
     optionsSuccessStatus: 200,
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'X-HTTP-Method-Override'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    preflightContinue: false
 }));
+
+// Handle preflight requests explicitly
+app.options('*', (req, res) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-HTTP-Method-Override');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.sendStatus(200);
+});
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// Additional middleware to ensure CORS headers are always present
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    const allowedOrigins = [
+        'https://itabaza-2qjt.vercel.app',
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://0.0.0.0:3000'
+    ];
+    
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
+    
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-HTTP-Method-Override');
+    
+    next();
+});
 
 const { userRouter } = require("./routers/user.router");
 const { supabase } = require("./config/db");

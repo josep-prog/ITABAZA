@@ -11,34 +11,48 @@ const urlsToCache = [
 
 // Install service worker
 self.addEventListener("install", (event) => {
+  console.log("Service Worker installed");
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
-});
-
-// Fetch cached files
-self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
-  );
-});
-
-
-self.addEventListener("install", function (e) {
-  console.log(" Service Worker installed");
   self.skipWaiting();
 });
 
+// Activate service worker
 self.addEventListener("activate", function (event) {
-  console.log(" Service Worker activated");
+  console.log("Service Worker activated");
+  event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener("fetch", function (event) {
-  if (event.request.mode === 'navigate') {
-    // Let navigation requests pass through
+// Fetch event - handle requests
+self.addEventListener("fetch", (event) => {
+  const requestUrl = new URL(event.request.url);
+  
+  // Don't intercept API requests to your backend
+  if (requestUrl.origin === 'https://itabaza.onrender.com' || 
+      requestUrl.hostname === 'itabaza.onrender.com') {
+    // Let API requests pass through without interference
     return;
   }
-  event.respondWith(fetch(event.request).catch(() => {
-    return new Response("Offline or resource not available");
-  }));
+  
+  // Don't intercept navigation requests
+  if (event.request.mode === 'navigate') {
+    return;
+  }
+  
+  // Handle other requests with cache-first strategy
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        // Return cached version or fetch from network
+        return response || fetch(event.request);
+      })
+      .catch(() => {
+        // If both cache and network fail, return a fallback
+        return new Response("Offline or resource not available", {
+          status: 503,
+          statusText: "Service Unavailable"
+        });
+      })
+  );
 });
