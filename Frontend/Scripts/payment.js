@@ -263,8 +263,10 @@ class PaymentManager {
     }
 
     getCurrentUserEmail() {
-        // Try to get the user's email from sessionStorage or localStorage
-        return sessionStorage.getItem('userEmail') || localStorage.getItem('userEmail') || '';
+        // Prioritize patient's email from appointment details, then fall back to user's stored email
+        return this.appointmentDetails.email || 
+               sessionStorage.getItem('userEmail') || 
+               localStorage.getItem('userEmail') || '';
     }
 
     clearSessionStorage() {

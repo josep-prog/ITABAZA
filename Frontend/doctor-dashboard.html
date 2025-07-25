@@ -19,8 +19,7 @@
 
         .dashboard-container {
             display: flex;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
         }
 
         /* Sidebar */
@@ -146,6 +145,7 @@
             margin-left: 260px;
             background: #f5f7fa;
             min-height: 100vh;
+            overflow-y: auto;
             transition: margin-left 0.3s ease;
         }
 
@@ -300,6 +300,31 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             overflow: hidden;
             margin-bottom: 30px;
+        }
+
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
 
         .table-header {
