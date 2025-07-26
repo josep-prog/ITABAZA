@@ -487,6 +487,35 @@
             border-top: 2px solid #e9ecef;
         }
         
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+            margin-top: 20px;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
         .documents-header {
             display: flex;
             align-items: center;
@@ -854,6 +883,11 @@
             
             <div id="appointmentDetailsContent" class="appointment-details">
                 <!-- Appointment details will be loaded here -->
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="joinVideoCall()">Join Video Call</button>
+                <button class="btn btn-secondary" onclick="closeAppointmentModal()">Close</button>
             </div>
             
         </div>
@@ -1288,6 +1322,12 @@
         
         function closeAppointmentModal() {
             document.getElementById('appointmentModal').style.display = 'none';
+        }
+        
+        // Join video call function
+        function joinVideoCall() {
+            // Open video call URL in a new tab
+            window.open('https://itabaza-videocall.onrender.com/', '_blank');
         }
         
         // Close modal when clicking outside

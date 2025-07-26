@@ -913,6 +913,7 @@ function showAppointmentModal(appointment, patient) {
             ${modalContent}
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeCustomModal()">Close</button>
+                <button class="btn btn-success" onclick="joinVideoCall()">Join Video Call</button>
                 <button class="btn btn-primary" onclick="completeAppointment('${appointment.id}')">Mark Complete</button>
             </div>
         </div>
@@ -1020,6 +1021,10 @@ function showAppointmentModal(appointment, patient) {
             background: #007bff;
             color: white;
         }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
         .btn:hover {
             opacity: 0.9;
         }
@@ -1065,6 +1070,12 @@ function closeCustomModal() {
     if (modal) {
         modal.remove();
     }
+}
+
+// Join video call function
+function joinVideoCall() {
+    // Open video call URL in a new tab
+    window.open('https://itabaza-videocall.onrender.com/', '_blank');
 }
 
 // Complete appointment function
