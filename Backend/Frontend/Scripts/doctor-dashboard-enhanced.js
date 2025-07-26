@@ -1,37 +1,38 @@
 import { baseURL, handleApiResponse, getAuthHeaders } from './baseURL.js';
 
-// Patient-specific authentication functions
-function getPatientAuthHeaders() {
-    const token = localStorage.getItem('patientToken') || sessionStorage.getItem('patientToken');
+// Doctor-specific authentication functions
+function getDoctorAuthHeaders() {
+    const token = localStorage.getItem('doctorToken') || sessionStorage.getItem('doctorToken');
     return {
         'Content-Type': 'application/json',
         ...(token && { 'Authorization': `Bearer ${token}` })
     };
 }
 
-function getCurrentPatientFromStorage() {
-    const patientInfo = localStorage.getItem('patientInfo') || sessionStorage.getItem('patientInfo');
-    return patientInfo ? JSON.parse(patientInfo) : null;
+function getCurrentDoctorFromStorage() {
+    const doctorInfo = localStorage.getItem('doctorInfo') || sessionStorage.getItem('doctorInfo');
+    return doctorInfo ? JSON.parse(doctorInfo) : null;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
     const navLinks = document.querySelectorAll('.sidebar-menu .nav-link');
     const pageContents = document.querySelectorAll('.page-content');
-    const patientNameElem = document.getElementById('patientName');
-    const patientEmailElem = document.getElementById('patientEmail');
+    const doctorNameElem = document.getElementById('doctorName');
+    const doctorEmailElem = document.getElementById('doctorEmail');
     const appointmentGrid = document.getElementById('appointmentGrid');
-    const documentsTableBody = document.getElementById('documentsTableBody');
+    const videoCallsGrid = document.getElementById('videoCallsGrid');
+    const patientsGrid = document.getElementById('patientsGrid');
 
-    const patientInfo = getCurrentPatient();
-    if (!patientInfo) {
-        console.log('❌ No patient info found, redirecting to login');
+    const doctorInfo = getCurrentDoctor();
+    if (!doctorInfo) {
+        console.log('❌ No doctor info found, redirecting to login');
         logout();
         return;
     }
 
-    console.log('✅ Patient info loaded:', patientInfo);
-    patientNameElem.textContent = `${patientInfo.first_name} ${patientInfo.last_name}`;
-    patientEmailElem.textContent = patientInfo.email;
+    console.log('✅ Doctor info loaded:', doctorInfo);
+    doctorNameElem.textContent = doctorInfo.doctor_name || `${doctorInfo.first_name} ${doctorInfo.last_name}`;
+    doctorEmailElem.textContent = doctorInfo.email;
     refreshDashboard();
 
     navLinks.forEach(link => {
@@ -43,9 +44,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function refreshDashboard() {
         try {
-            console.log('🔍 Refreshing dashboard for patient:', patientInfo.id);
-            const response = await fetch(`${baseURL}/api/dashboard/patient/${patientInfo.id}/dashboard`, {
-                headers: getPatientAuthHeaders(),
+            console.log('🔍 Refreshing dashboard for doctor:', doctorInfo.id);
+            const response = await fetch(`${baseURL}/api/dashboard/doctor/${doctorInfo.id}/dashboard`, {
+                headers: getDoctorAuthHeaders(),
             });
             
             console.log('Dashboard response status:', response.status);
@@ -63,13 +64,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const dashboardData = data.data;
             document.getElementById('totalAppointments').textContent = dashboardData.total_appointments || 0;
-            document.getElementById('upcomingAppointments').textContent = dashboardData.upcoming_appointments || 0;
-            document.getElementById('totalDocuments').textContent = dashboardData.total_documents || 0;
-            document.getElementById('supportTickets').textContent = dashboardData.support_tickets || 0;
+            document.getElementById('totalPatients').textContent = dashboardData.total_patients || 0;
+            document.getElementById('videoCallAppointments').textContent = dashboardData.video_call_appointments || 0;
+            document.getElementById('monthlyRevenue').textContent = `$${dashboardData.monthly_revenue || 0}`;
 
             console.log('✅ Dashboard stats updated successfully');
             await populateAppointments();
-            await populateDocuments();
+            await populateVideoCallAppointments();
+            await populatePatients();
         } catch (error) {
             console.error('❌ Error fetching dashboard data:', error);
             showErrorMessage('Failed to load dashboard data. Please try again.');
@@ -86,15 +88,30 @@ document.addEventListener('DOMContentLoaded', function() {
         if (activeLink && activeContent) {
             activeLink.classList.add('active');
             activeContent.classList.add('active');
-            document.getElementById('pageTitle').textContent = activeLink.querySelector('span').textContent;
-            document.getElementById('pageSubtitle').textContent = `View your ${pageId}`;
+            
+            const pageTitles = {
+                'appointments': 'My Appointments',
+                'video-calls': 'Video Call Appointments',
+                'patients': 'My Patients',
+                'documents': 'Documents'
+            };
+            
+            const pageSubtitles = {
+                'appointments': 'Manage your patient appointments',
+                'video-calls': 'Join video calls with patients',
+                'patients': 'View your patient list',
+                'documents': 'Manage patient documents'
+            };
+            
+            document.getElementById('pageTitle').textContent = pageTitles[pageId] || 'Dashboard';
+            document.getElementById('pageSubtitle').textContent = pageSubtitles[pageId] || 'Manage your practice';
         }
     }
 
     async function populateAppointments() {
         try {
-            const response = await fetch(`${baseURL}/api/dashboard/patient/${patientInfo.id}/appointments?status=booked&limit=10`, {
-                headers: getPatientAuthHeaders(),
+            const response = await fetch(`${baseURL}/api/appointments/doctor/${doctorInfo.id}`, {
+                headers: getDoctorAuthHeaders(),
             });
             const data = await handleApiResponse(response);
             
@@ -106,9 +123,10 @@ document.addEventListener('DOMContentLoaded', function() {
             appointmentGrid.innerHTML = '';
             
             data.data.forEach(appointment => {
-                const appointmentCard = createAppointmentCard(appointment);
+                const appointmentCard = createDoctorAppointmentCard(appointment);
                 appointmentGrid.appendChild(appointmentCard);
             });
+            
             // Add event listeners for View buttons
             document.querySelectorAll('.view-appointment-btn').forEach(btn => {
                 btn.addEventListener('click', async function() {
@@ -122,54 +140,51 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function populateDocuments() {
+    async function populateVideoCallAppointments() {
         try {
-            console.log('📄 Fetching documents for patient:', patientInfo.id);
-            const response = await fetch(`${baseURL}/api/dashboard/patient/${patientInfo.id}/documents`, {
-                headers: getPatientAuthHeaders(),
+            const response = await fetch(`${baseURL}/api/appointments/doctor/${doctorInfo.id}?consultation_type=video-call`, {
+                headers: getDoctorAuthHeaders(),
             });
-            
-            console.log('Documents response status:', response.status);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
             const data = await handleApiResponse(response);
-            console.log('Documents data received:', data);
             
-            if (!data.success) {
-                throw new Error('Failed to fetch documents');
-            }
-
-            documentsTableBody.innerHTML = '';
-            if (!data.data || data.data.length === 0) {
-                console.log('⚠️ No documents found for patient');
-                documentsTableBody.innerHTML = '<tr><td colspan="5" class="text-center">No documents available</td></tr>';
+            if (!data.success || !data.data || data.data.length === 0) {
+                videoCallsGrid.innerHTML = '<div class="empty-state"><p>No video call appointments found</p></div>';
                 return;
             }
 
-            console.log(`✅ Found ${data.data.length} document(s) for patient`);
-            data.data.forEach((document, index) => {
-                console.log(`Document ${index + 1}:`, document);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${document.document_name}</td>
-                    <td>${document.document_type}</td>
-                    <td>${document.doctor_name || 'N/A'}</td>
-                    <td>${document.document_date || 'N/A'}</td>
-                    <td>
-                        <button class='btn btn-secondary' onclick='viewDocument("${document.file_url}")'>View</button>
-                        <button class='btn btn-primary' onclick='downloadDocument("${document.file_url}", "${document.document_name}")'>Download</button>
-                    </td>
-                `;
-                documentsTableBody.appendChild(row);
-            });
+            videoCallsGrid.innerHTML = '';
             
-            console.log('✅ Documents table populated successfully');
+            data.data.filter(appointment => appointment.consultation_type === 'video-call').forEach(appointment => {
+                const appointmentCard = createVideoCallAppointmentCard(appointment);
+                videoCallsGrid.appendChild(appointmentCard);
+            });
         } catch (error) {
-            console.error('❌ Error fetching documents:', error);
-            documentsTableBody.innerHTML = '<tr><td colspan="5" class="text-center">Error loading documents</td></tr>';
+            console.error('Error fetching video call appointments:', error);
+            videoCallsGrid.innerHTML = '<div class="error-state"><p>Error loading video call appointments. Please try again.</p></div>';
+        }
+    }
+
+    async function populatePatients() {
+        try {
+            const response = await fetch(`${baseURL}/api/dashboard/doctor/${doctorInfo.id}/patients`, {
+                headers: getDoctorAuthHeaders(),
+            });
+            const data = await handleApiResponse(response);
+            
+            if (!data.success || !data.data || data.data.length === 0) {
+                patientsGrid.innerHTML = '<div class="empty-state"><p>No patients found</p></div>';
+                return;
+            }
+
+            patientsGrid.innerHTML = '';
+            
+            data.data.forEach(patient => {
+                const patientCard = createPatientCard(patient);
+                patientsGrid.appendChild(patientCard);
+            });
+        } catch (error) {
+            console.error('Error fetching patients:', error);
+            patientsGrid.innerHTML = '<div class="error-state"><p>Error loading patients. Please try again.</p></div>';
         }
     }
 
@@ -177,57 +192,18 @@ document.addEventListener('DOMContentLoaded', function() {
     logoutBtn.onclick = logout;
 
     function logout() {
-        localStorage.removeItem('patientToken');
-        localStorage.removeItem('patientInfo');
-        sessionStorage.removeItem('patientToken');
-        sessionStorage.removeItem('patientInfo');
+        localStorage.removeItem('doctorToken');
+        localStorage.removeItem('doctorInfo');
+        sessionStorage.removeItem('doctorToken');
+        sessionStorage.removeItem('doctorInfo');
         window.location.href = './login.html';
     }
 
-    function getCurrentPatient() {
-        return getCurrentPatientFromStorage();
+    function getCurrentDoctor() {
+        return getCurrentDoctorFromStorage();
     }
 
-    // Support form submission
-    const supportForm = document.getElementById('supportForm');
-    if (supportForm) {
-        supportForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const supportData = {
-                userId: patientInfo.id,
-                userType: 'patient',
-                userName: `${patientInfo.first_name} ${patientInfo.last_name}`,
-                userEmail: patientInfo.email,
-                ticketType: formData.get('ticketType'),
-                subject: formData.get('subject'),
-                description: formData.get('description'),
-                priority: formData.get('priority')
-            };
-            
-            try {
-                const response = await fetch(`${baseURL}/api/dashboard/support/ticket`, {
-                    method: 'POST',
-                    headers: getPatientAuthHeaders(),
-                    body: JSON.stringify(supportData)
-                });
-                
-                const result = await handleApiResponse(response);
-                if (result.success) {
-                    showSuccessMessage('Support ticket submitted successfully!');
-                    this.reset();
-                } else {
-                    showErrorMessage('Failed to submit support ticket. Please try again.');
-                }
-            } catch (error) {
-                console.error('Error submitting support ticket:', error);
-                showErrorMessage('Error submitting support ticket. Please try again.');
-            }
-        });
-    }
-
-    function createAppointmentCard(appointment) {
+    function createDoctorAppointmentCard(appointment) {
         const card = document.createElement('div');
         card.className = `appointment-card ${appointment.status}`;
 
@@ -241,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         card.innerHTML = `
             <div class="appointment-header">
-                <h3 class="appointment-doctor">Dr. ${appointment.doc_first_name}</h3>
+                <h3 class="appointment-patient">${appointment.patient_first_name}</h3>
                 <div class="appointment-time">${appointment.appointment_date} ${appointment.appointment_time || ''}</div>
             </div>
             <div class="appointment-details">
@@ -263,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 ${showVideoLink ? `
                 <div class="appointment-detail video-call-info">
-                    <i class="fas fa-video" style="color: #28a745;"></i>
+                    <i class="fas fa-video" style="color: #007bff;"></i>
                     <span><strong>Room:</strong> ${appointment.video_call_room_name}</span>
                 </div>
                 ` : ''}
@@ -275,7 +251,85 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="fas fa-video"></i> Join Video Call
                 </a>
                 ` : ''}
+                <button class="btn btn-primary complete-appointment-btn" data-appointment-id="${appointment.id}">
+                    Mark Complete
+                </button>
                 <button class="btn btn-secondary view-appointment-btn" data-appointment-id="${appointment.id}">View Details</button>
+            </div>
+        `;
+        return card;
+    }
+
+    function createVideoCallAppointmentCard(appointment) {
+        const card = document.createElement('div');
+        card.className = `appointment-card ${appointment.status}`;
+
+        const showVideoLink = appointment.payment_status && appointment.video_call_url;
+        
+        card.innerHTML = `
+            <div class="appointment-header">
+                <h3 class="appointment-patient">${appointment.patient_first_name}</h3>
+                <div class="appointment-time">${appointment.appointment_date} ${appointment.slot_time}</div>
+            </div>
+            <div class="video-call-info">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div>
+                        <strong><i class="fas fa-video"></i> Video Call Appointment</strong>
+                        ${appointment.video_call_room_name ? `<br><small>Room: ${appointment.video_call_room_name}</small>` : ''}
+                    </div>
+                    <div class="badge ${appointment.payment_status ? 'status-confirmed' : 'status-pending'}">
+                        ${appointment.payment_status ? 'Paid' : 'Pending Payment'}
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    ${showVideoLink ? `
+                    <a href="${appointment.video_call_url}" target="_blank" class="btn btn-success" 
+                       style="text-decoration: none; display: inline-flex; align-items: center; gap: 5px; width: 100%; justify-content: center;">
+                        <i class="fas fa-video"></i> Join Video Call
+                    </a>
+                    ` : `
+                    <div style="text-align: center; padding: 10px; background: #fff3cd; border-radius: 4px; color: #856404;">
+                        <i class="fas fa-clock"></i> Video call link will be available after payment confirmation
+                    </div>
+                    `}
+                </div>
+            </div>
+            <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-secondary view-appointment-btn" data-appointment-id="${appointment.id}">View Details</button>
+            </div>
+        `;
+        return card;
+    }
+
+    function createPatientCard(patient) {
+        const card = document.createElement('div');
+        card.className = 'appointment-card';
+
+        card.innerHTML = `
+            <div class="appointment-header">
+                <h3 class="appointment-patient">${patient.patient_first_name}</h3>
+                <div class="appointment-time">Patient ID: ${patient.patient_id.substring(0, 8)}...</div>
+            </div>
+            <div class="appointment-details">
+                <div class="appointment-detail">
+                    <i class="fas fa-envelope"></i>
+                    <span>${patient.patient_email || 'N/A'}</span>
+                </div>
+                <div class="appointment-detail">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments: ${patient.appointment_count || 0}</span>
+                </div>
+                <div class="appointment-detail">
+                    <i class="fas fa-clock"></i>
+                    <span>Last Visit: ${patient.last_appointment_date || 'N/A'}</span>
+                </div>
+                <div class="appointment-detail">
+                    <i class="fas fa-notes-medical"></i>
+                    <span>Last Issue: ${patient.last_problem_description ? patient.last_problem_description.substring(0, 30) + '...' : 'N/A'}</span>
+                </div>
+            </div>
+            <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-secondary view-patient-btn" data-patient-id="${patient.patient_id}">View History</button>
             </div>
         `;
         return card;
@@ -338,28 +392,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 
-    // Global functions for document viewing
-    window.viewDocument = function(documentUrl) {
-        window.open(documentUrl, '_blank');
-    };
-
-    window.downloadDocument = function(documentUrl, documentName) {
-        const link = document.createElement('a');
-        link.href = documentUrl;
-        link.download = documentName;
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
     // Refresh button functionality
     const refreshBtn = document.getElementById('refreshBtn');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', refreshDashboard);
     }
 
-    // Modal logic
+    // Modal logic for appointment details
     async function showAppointmentDetailsModal(appointmentId) {
         const modal = document.getElementById('appointmentDetailsModal');
         const body = document.getElementById('appointmentDetailsBody');
@@ -367,23 +406,24 @@ document.addEventListener('DOMContentLoaded', function() {
         body.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading details...</div>';
         docsList.innerHTML = '';
         modal.style.display = 'flex';
-        // Fetch appointment details
+        
         try {
-            const response = await fetch(`${baseURL}/api/dashboard/patient/${patientInfo.id}/appointments/${appointmentId}`, {
-                headers: getPatientAuthHeaders(),
+            const response = await fetch(`${baseURL}/api/appointments/view/${appointmentId}`, {
+                headers: getDoctorAuthHeaders(),
             });
             const data = await handleApiResponse(response);
-            if (!data.success || !data.data) throw new Error('No details found');
-            const appt = data.data;
+            if (!data.success || !data.appointment) throw new Error('No details found');
+            
+            const appt = data.appointment;
             let videoCallSection = '';
             if (appt.consultation_type === 'video-call' && appt.payment_status && appt.video_call_url) {
                 videoCallSection = `
                     <br><hr style="margin: 15px 0;">
-                    <div style="background: #f8fff8; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
-                        <h4 style="margin-top: 0; color: #28a745;"><i class="fas fa-video"></i> Video Call Information</h4>
+                    <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff;">
+                        <h4 style="margin-top: 0; color: #007bff;"><i class="fas fa-video"></i> Video Call Information</h4>
                         <p><strong>Room:</strong> ${appt.video_call_room_name}</p>
                         <p><strong>Video Call URL:</strong> <a href="${appt.video_call_url}" target="_blank" 
-                           style="color: #28a745; font-weight: bold;">Join Video Call</a></p>
+                           style="color: #007bff; font-weight: bold;">Join Video Call</a></p>
                         <div style="margin-top: 10px;">
                             <a href="${appt.video_call_url}" target="_blank" 
                                class="btn btn-success" style="text-decoration: none; padding: 8px 16px; border-radius: 4px; color: white;">
@@ -405,32 +445,22 @@ document.addEventListener('DOMContentLoaded', function() {
             body.innerHTML = `
                 <strong>Date:</strong> ${appt.appointment_date}<br>
                 <strong>Time:</strong> ${appt.slot_time || appt.appointment_time || 'TBD'}<br>
-                <strong>Doctor:</strong> Dr. ${appt.doc_first_name} ${appt.doc_last_name || ''}<br>
+                <strong>Patient:</strong> ${appt.patient_first_name}<br>
                 <strong>Type:</strong> ${appt.consultation_type}<br>
                 <strong>Status:</strong> ${appt.status}<br>
                 <strong>Payment Status:</strong> ${appt.payment_status ? 'Paid' : 'Pending'}<br>
                 <strong>Description:</strong> ${appt.problem_description || ''}<br>
                 ${videoCallSection}
             `;
-            const docsResponse = await fetch(`${baseURL}/api/dashboard/patient/${patientInfo.id}/appointments/${appointmentId}/documents`, {
-                headers: getPatientAuthHeaders(),
-            });
-            const docsData = await handleApiResponse(docsResponse);
-            if (docsData.success && docsData.data && docsData.data.length > 0) {
-                docsList.innerHTML = '';
-                docsData.data.forEach(doc => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<a href="${doc.file_url}" target="_blank">${doc.document_name}</a> (${doc.document_type})`;
-                    docsList.appendChild(li);
-                });
-            } else {
-                docsList.innerHTML = '<li>No documents found for this appointment.</li>';
-            }
+            
+            // No documents section for doctor view - they can manage documents separately
+            docsList.innerHTML = '<li>Document management available in Documents section</li>';
         } catch (err) {
             body.innerHTML = '<span style="color:red;">Failed to load appointment details.</span>';
             docsList.innerHTML = '';
         }
     }
+    
     // Modal close logic
     const closeModalBtn = document.getElementById('closeAppointmentModal');
     if (closeModalBtn) {
@@ -438,6 +468,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('appointmentDetailsModal').style.display = 'none';
         };
     }
+    
     window.onclick = function(event) {
         const modal = document.getElementById('appointmentDetailsModal');
         if (event.target === modal) {
@@ -445,4 +476,3 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 });
-

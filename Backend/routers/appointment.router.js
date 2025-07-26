@@ -153,6 +153,7 @@ appointmentRouter.post("/create/:doctorId", authenticate, async (req, res) => {
       problem_description: problemDescription,
       appointment_date: appointmentDate,
       slot_time: slotTime,
+      consultation_type: req.body.consultationType || 'in-person',
       status: 'pending',
       payment_status: Boolean(paymentDetails.transactionId),
       // Payment details for Rwanda mobile money

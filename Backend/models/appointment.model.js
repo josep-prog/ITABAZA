@@ -157,6 +157,56 @@ const AppointmentModel = {
     return data;
   },
 
+  // Get available video call rooms for a specific date and time
+  async getAvailableVideoRooms(appointmentDate, appointmentTime) {
+    const { data, error } = await supabase
+      .rpc('get_available_video_rooms', {
+        p_appointment_date: appointmentDate,
+        p_appointment_time: appointmentTime
+      });
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Assign video call room to appointment
+  async assignVideoRoom(appointmentId, roomId, roomName, videoUrl) {
+    const { data, error } = await supabase
+      .from(TABLE_NAME)
+      .update({
+        video_call_room_id: roomId,
+        video_call_room_name: roomName,
+        video_call_url: videoUrl
+      })
+      .eq('id', appointmentId)
+      .select();
+    
+    if (error) throw error;
+    return data[0];
+  },
+
+  // Get appointments with video call details
+  async findVideoCallAppointments(patientId = null, doctorId = null) {
+    let query = supabase
+      .from(TABLE_NAME)
+      .select('*')
+      .eq('consultation_type', 'video-call')
+      .not('video_call_url', 'is', null);
+    
+    if (patientId) {
+      query = query.eq('patient_id', patientId);
+    }
+    
+    if (doctorId) {
+      query = query.eq('doctor_id', doctorId);
+    }
+    
+    const { data, error } = await query.order('appointment_date', { ascending: true });
+    
+    if (error) throw error;
+    return data;
+  },
+
   // Get comprehensive appointment statistics
   async getStatistics() {
     const { data, error } = await supabase

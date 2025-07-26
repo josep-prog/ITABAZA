@@ -34,6 +34,7 @@ const { audioRouter } = require("./routers/audio.router");
 const dashboardApiRouter = require("./routers/dashboard.router");
 const adminDashboardRouter = require("./routers/admin-dashboard.router");
 const { authRouter } = require("./routers/auth.router");
+const { dashboardRouter: enhancedDashboardRouter } = require("./routers/enhanced-dashboard.router");
 // const { authenticate } = require("./middlewares/authenticator.mw");
 
 
@@ -50,6 +51,7 @@ app.use("/enhanced-appointment", enhancedAppointmentRouter);
 app.use("/admin", dashboardRouter);
 app.use("/audio", audioRouter);
 app.use("/api/dashboard", dashboardApiRouter);
+app.use("/api/dashboard", enhancedDashboardRouter);
 app.use("/api/admin", adminDashboardRouter);
 
 // Serve static frontend files from the Frontend directory
