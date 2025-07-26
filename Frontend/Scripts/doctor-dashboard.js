@@ -41,6 +41,13 @@ function getCurrentDoctorFromStorage() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Doctor Dashboard initializing...');
     
+    // Add global error handler for unhandled promise rejections
+    window.addEventListener('unhandledrejection', function(event) {
+        console.error('Unhandled promise rejection:', event.reason);
+        // Prevent the default browser behavior
+        event.preventDefault();
+    });
+    
     // Check if user is logged in
     if (!isUserLoggedIn()) {
         redirectToLogin();
@@ -1166,6 +1173,22 @@ function joinVideoCall(appointmentId) {
     // Show confirmation message
     showAlert('Opening video call application. Please wait for the page to load.', 'info');
 }
+
+// Make functions globally accessible for inline onclick handlers
+window.joinVideoCall = joinVideoCall;
+window.closeCustomModal = closeCustomModal;
+window.completeAppointment = completeAppointment;
+window.viewAppointment = viewAppointment;
+window.updateAppointmentStatus = updateAppointmentStatus;
+window.viewDocument = viewDocument;
+window.deleteDocument = deleteDocument;
+window.viewTicket = viewTicket;
+window.toggleSidebar = toggleSidebar;
+window.refreshData = refreshData;
+window.showSection = showSection;
+window.loadAppointments = loadAppointments;
+window.loadDocuments = loadDocuments;
+window.loadSupportTickets = loadSupportTickets;
 
 // Global functions
 function toggleSidebar() {

@@ -97,4 +97,36 @@ function joinVideoCall(appointmentId) {
 - Video call integration is non-intrusive
 - Buttons are clearly labeled and styled consistently
 - Error handling is in place for URL opening
-- Console logging added for debugging purposes 
+- Console logging added for debugging purposes
+- All functions made globally accessible for inline onclick handlers
+- Global error handler added for unhandled promise rejections
+
+## Recent Fixes (Latest Update)
+
+### Fixed Function Accessibility Issues
+- **Problem**: `joinVideoCall` and other functions were not accessible from inline `onclick` handlers
+- **Solution**: Made all functions globally accessible via `window` object
+- **Functions Fixed**:
+  - `joinVideoCall`
+  - `closeCustomModal`
+  - `completeAppointment`
+  - `viewAppointment`
+  - `updateAppointmentStatus`
+  - `viewDocument`
+  - `deleteDocument`
+  - `viewTicket`
+  - `toggleSidebar`
+  - `refreshData`
+  - `showSection`
+  - `loadAppointments`
+  - `loadDocuments`
+  - `loadSupportTickets`
+
+### Added Error Handling
+- **Global Promise Rejection Handler**: Catches unhandled promise rejections
+- **Prevents Browser Errors**: Stops "Uncaught (in promise) Object" errors
+- **Better Debugging**: Logs errors to console for troubleshooting
+
+### Testing
+- Created `test-doctor-dashboard-functions.html` for function testing
+- All functions now properly accessible from HTML onclick handlers 
