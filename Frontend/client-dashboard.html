@@ -1134,6 +1134,13 @@
                     <div class="detail-label"> Appointment ID</div>
                     <div class="detail-value" style="font-family: monospace; font-size: 0.9rem;">${appointment.id}</div>
                 </div>
+                
+                <div class="detail-card" style="grid-column: 1 / -1; text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="joinVideoCall('${appointment.id}')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 12px 24px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
+                        <i class="fas fa-video" style="margin-right: 8px;"></i>
+                        Join Video Call
+                    </button>
+                </div>
             `;
         }
         
@@ -1288,6 +1295,19 @@
         
         function closeAppointmentModal() {
             document.getElementById('appointmentModal').style.display = 'none';
+        }
+        
+        // Join video call function
+        function joinVideoCall(appointmentId) {
+            const videoCallUrl = 'https://itabaza-videocall.onrender.com/';
+            console.log('Joining video call for appointment:', appointmentId);
+            console.log('Opening video call URL:', videoCallUrl);
+            
+            // Open video call in new tab
+            window.open(videoCallUrl, '_blank');
+            
+            // Show confirmation message
+            alert('Opening video call application. Please wait for the page to load.');
         }
         
         // Close modal when clicking outside

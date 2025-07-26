@@ -914,6 +914,10 @@ function showAppointmentModal(appointment, patient) {
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeCustomModal()">Close</button>
                 <button class="btn btn-primary" onclick="completeAppointment('${appointment.id}')">Mark Complete</button>
+                <button class="btn btn-success" onclick="joinVideoCall('${appointment.id}')" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; padding: 10px 20px; border-radius: 6px; color: white; font-weight: 500; cursor: pointer;">
+                    <i class="fas fa-video" style="margin-right: 8px;"></i>
+                    Join Video Call
+                </button>
             </div>
         </div>
     `;
@@ -1148,6 +1152,19 @@ function deleteDocument(documentId) {
 function viewTicket(ticketId) {
     showAlert('Viewing ticket details...', 'info');
     // Implement ticket details view
+}
+
+// Join video call function
+function joinVideoCall(appointmentId) {
+    const videoCallUrl = 'https://itabaza-videocall.onrender.com/';
+    console.log('Doctor joining video call for appointment:', appointmentId);
+    console.log('Opening video call URL:', videoCallUrl);
+    
+    // Open video call in new tab
+    window.open(videoCallUrl, '_blank');
+    
+    // Show confirmation message
+    showAlert('Opening video call application. Please wait for the page to load.', 'info');
 }
 
 // Global functions

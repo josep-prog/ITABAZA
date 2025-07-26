@@ -326,6 +326,19 @@ document.addEventListener('DOMContentLoaded', function() {
         window.open(documentUrl, '_blank');
     };
 
+    // Join video call function
+    window.joinVideoCall = function(appointmentId) {
+        const videoCallUrl = 'https://itabaza-videocall.onrender.com/';
+        console.log('Patient joining video call for appointment:', appointmentId);
+        console.log('Opening video call URL:', videoCallUrl);
+        
+        // Open video call in new tab
+        window.open(videoCallUrl, '_blank');
+        
+        // Show confirmation message
+        showSuccessMessage('Opening video call application. Please wait for the page to load.');
+    };
+
     window.downloadDocument = function(documentUrl, documentName) {
         const link = document.createElement('a');
         link.href = documentUrl;
@@ -365,6 +378,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 <strong>Type:</strong> ${appt.consultation_type}<br>
                 <strong>Status:</strong> ${appt.status}<br>
                 <strong>Description:</strong> ${appt.problem_description || ''}<br>
+                <br>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button onclick="joinVideoCall('${appointmentId}')" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; padding: 12px 24px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
+                        <i class="fas fa-video" style="margin-right: 8px;"></i>
+                        Join Video Call
+                    </button>
+                </div>
             `;
             // Fetch related documents
             const docsResponse = await fetch(`${baseURL}/api/dashboard/patient/${patientInfo.id}/appointments/${appointmentId}/documents`, {
