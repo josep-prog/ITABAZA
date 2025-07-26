@@ -210,9 +210,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const statusBadge = getStatusBadge(appointment.status);
         const typeBadge = getTypeBadge(appointment.consultation_type);
         
-        // Show video call link for completed, paid video appointments
-        const showVideoLink = appointment.consultation_type === 'video-call' && 
-                             appointment.payment_status && 
+        // Show video call link for video appointments that have URLs (regardless of payment for testing)
+        const showVideoLink = (appointment.consultation_type === 'video-call' || appointment.appointmentType === 'video-call') && 
                              appointment.video_call_url;
 
         card.innerHTML = `

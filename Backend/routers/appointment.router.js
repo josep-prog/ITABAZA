@@ -142,6 +142,26 @@ appointmentRouter.post("/create/:doctorId", authenticate, async (req, res) => {
       return res.send({ msg: `${docFirstName} is currently unavailable` });
     }
     
+    // Generate video call details if consultation type is video-call
+    let videoCallData = {};
+    const consultationType = req.body.consultationType || 'in-person';
+    
+    if (consultationType === 'video-call') {
+      // Generate unique room ID and name
+      const roomId = Math.floor(Math.random() * 10000) + 1;
+      const dateStr = appointmentDate.replace(/-/g, '');
+      const roomName = `iTABAZA-Room-${dateStr}-${roomId.toString().padStart(4, '0')}`;
+      const roomUrl = `https://meet.jit.si/itabaza-${roomName.toLowerCase().replace(/-/g, '')}`;
+      
+      videoCallData = {
+        video_call_room_id: roomId,
+        video_call_room_name: roomName,
+        video_call_url: roomUrl
+      };
+      
+      console.log('🎥 Generated video call data:', videoCallData);
+    }
+    
     const appointmentData = {
       patient_id: patientId,
       doctor_id: doctorId,
@@ -153,7 +173,7 @@ appointmentRouter.post("/create/:doctorId", authenticate, async (req, res) => {
       problem_description: problemDescription,
       appointment_date: appointmentDate,
       slot_time: slotTime,
-      consultation_type: req.body.consultationType || 'in-person',
+      consultation_type: consultationType,
       status: 'pending',
       payment_status: Boolean(paymentDetails.transactionId),
       // Payment details for Rwanda mobile money
@@ -163,7 +183,9 @@ appointmentRouter.post("/create/:doctorId", authenticate, async (req, res) => {
       payment_phone_number: paymentDetails.phoneNumber || null,
       payment_method: paymentDetails.paymentMethod || null,
       payment_amount: paymentDetails.amount || null,
-      payment_currency: paymentDetails.currency || 'RWF'
+      payment_currency: paymentDetails.currency || 'RWF',
+      // Add video call data if applicable
+      ...videoCallData
     };
     
     const createdAppointment = await AppointmentModel.create(appointmentData);
@@ -489,6 +511,26 @@ appointmentRouter.post("/create-pending", async (req, res) => {
     // Ensure status and payment_status are set for pending
     appointmentData.status = 'pending';
     appointmentData.payment_status = false;
+    
+    // Generate video call details if consultation type is video-call
+    if (appointmentData.consultation_type === 'video-call' || appointmentData.appointmentType === 'video-call') {
+      // Generate unique room ID and name
+      const roomId = Math.floor(Math.random() * 10000) + 1;
+      const appointmentDate = appointmentData.appointment_date || new Date().toISOString().split('T')[0];
+      const dateStr = appointmentDate.replace(/-/g, '');
+      const roomName = `iTABAZA-Room-${dateStr}-${roomId.toString().padStart(4, '0')}`;
+      const roomUrl = `https://meet.jit.si/itabaza-${roomName.toLowerCase().replace(/-/g, '')}`;
+      
+      appointmentData.video_call_room_id = roomId;
+      appointmentData.video_call_room_name = roomName;
+      appointmentData.video_call_url = roomUrl;
+      
+      console.log('🎥 Generated video call data for pending appointment:', {
+        room_id: roomId,
+        room_name: roomName,
+        room_url: roomUrl
+      });
+    }
     
     // Enhanced patient ID resolution with multiple fallback strategies
     let patientId = appointmentData.patient_id || appointmentData.patientId || appointmentData.userID;
